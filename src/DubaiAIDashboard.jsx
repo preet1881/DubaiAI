@@ -388,6 +388,7 @@ const DubaiAIDashboard = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState(null);
+  const [showJourneyNotesInput, setShowJourneyNotesInput] = useState(false);
   
   // Refs for debouncing API calls
   const saveTimeoutRef = useRef(null);
@@ -1404,13 +1405,26 @@ const DubaiAIDashboard = () => {
             }}>
               {currentJourney?.name}
             </div>
-            {currentJourney?.notes && (
-              editMode ? (
+            {/* Journey Notes */}
+            {editMode ? (
+              // Edit Mode: Show input if notes exist or if user clicked "Add journey note"
+              (currentJourney?.notes || showJourneyNotesInput) ? (
                 <input
                   type="text"
-                  value={currentJourney.notes}
-                  onChange={(e) => updateNotes(e.target.value)}
-                  placeholder="Add notes..."
+                  value={currentJourney?.notes || ''}
+                  onChange={(e) => {
+                    updateNotes(e.target.value);
+                    if (e.target.value.trim()) {
+                      setShowJourneyNotesInput(true);
+                    }
+                  }}
+                  onBlur={() => {
+                    if (!currentJourney?.notes?.trim()) {
+                      setShowJourneyNotesInput(false);
+                    }
+                  }}
+                  placeholder="Add journey notes..."
+                  autoFocus={!currentJourney?.notes && showJourneyNotesInput}
                   style={{
                     padding: '10px 16px',
                     background: 'rgba(245, 158, 11, 0.1)',
@@ -1424,6 +1438,39 @@ const DubaiAIDashboard = () => {
                   }}
                 />
               ) : (
+                // Edit Mode: Show "Add journey note" button when notes are empty
+                <button
+                  onClick={() => setShowJourneyNotesInput(true)}
+                  style={{
+                    padding: '10px 16px',
+                    background: 'rgba(245, 158, 11, 0.1)',
+                    border: '1px solid rgba(245, 158, 11, 0.3)',
+                    borderRadius: '8px',
+                    color: '#fbbf24',
+                    fontSize: '14px',
+                    fontFamily: 'inherit',
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '6px',
+                    transition: 'all 0.2s'
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.background = 'rgba(245, 158, 11, 0.2)';
+                    e.currentTarget.style.borderColor = 'rgba(245, 158, 11, 0.5)';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.background = 'rgba(245, 158, 11, 0.1)';
+                    e.currentTarget.style.borderColor = 'rgba(245, 158, 11, 0.3)';
+                  }}
+                >
+                  <Plus size={14} />
+                  Add journey note
+                </button>
+              )
+            ) : (
+              // View Mode: Show notes only if they exist
+              currentJourney?.notes && (
                 <div style={{
                   display: 'inline-block',
                   padding: '10px 16px',
@@ -1444,9 +1491,12 @@ const DubaiAIDashboard = () => {
                 // Save all changes when clicking Save
                 await saveAllChanges();
                 setEditMode(false);
+                setShowJourneyNotesInput(false); // Reset notes input state
               } else {
                 // Enter edit mode
                 setEditMode(true);
+                // If notes exist, show input; otherwise show button
+                setShowJourneyNotesInput(!!currentJourney?.notes);
               }
             }}
             disabled={isSaving}
