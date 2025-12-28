@@ -1518,30 +1518,35 @@ const DubaiAIDashboard = () => {
             )}
           </div>
 
-          {/* Kanban Columns */}
-          <div style={{
-            display: 'flex',
-            gap: '16px',
-            overflowX: 'auto',
-            paddingBottom: '8px'
-          }}>
+          {/* Kanban Columns - Grid Layout (2x2, responsive) */}
+          <div 
+            className="kanban-grid"
+            style={{
+              display: 'grid',
+              gridTemplateColumns: 'repeat(2, 1fr)',
+              gap: '16px',
+              paddingBottom: '8px'
+            }}
+          >
             {kanbanColumns.map((column) => {
               const columnStages = getStagesByStatus(column.status);
               const stageCount = columnStages.length;
+              const isEmpty = stageCount === 0;
 
               return (
                 <div
                   key={column.status}
                   style={{
-                    flex: '1',
-                    minWidth: '280px',
                     background: column.bgColor,
                     border: `1px solid ${column.borderColor}`,
                     borderRadius: '12px',
                     padding: '16px',
                     display: 'flex',
                     flexDirection: 'column',
-                    gap: '12px'
+                    gap: '12px',
+                    height: isEmpty ? 'auto' : '600px',
+                    maxHeight: isEmpty ? 'none' : '600px',
+                    minHeight: isEmpty ? 'auto' : '200px'
                   }}
                 >
                   {/* Column Header */}
@@ -1551,7 +1556,8 @@ const DubaiAIDashboard = () => {
                     justifyContent: 'space-between',
                     marginBottom: '8px',
                     paddingBottom: '12px',
-                    borderBottom: `2px solid ${column.borderColor}`
+                    borderBottom: `2px solid ${column.borderColor}`,
+                    flexShrink: 0
                   }}>
                     <div style={{
                       display: 'flex',
@@ -1583,20 +1589,28 @@ const DubaiAIDashboard = () => {
                     </div>
                   </div>
 
-                  {/* Stage Cards */}
-                  <div style={{
-                    display: 'flex',
-                    flexDirection: 'column',
-                    gap: '12px',
-                    minHeight: '100px'
-                  }}>
+                  {/* Stage Cards - Scrollable Container */}
+                  <div 
+                    className="kanban-column-scroll"
+                    style={{
+                      display: 'flex',
+                      flexDirection: 'column',
+                      gap: '12px',
+                      overflowY: isEmpty ? 'visible' : 'auto',
+                      overflowX: 'hidden',
+                      flex: isEmpty ? '0 1 auto' : '1 1 0',
+                      minHeight: isEmpty ? 'auto' : '0',
+                      paddingRight: isEmpty ? '0' : '4px'
+                    }}
+                  >
                     {columnStages.length === 0 ? (
                       <div style={{
-                        padding: '24px',
+                        padding: '16px',
                         textAlign: 'center',
                         color: '#94a3b8',
                         fontSize: '13px',
-                        fontStyle: 'italic'
+                        fontStyle: 'italic',
+                        flexShrink: 0
                       }}>
                         No stages
                       </div>
@@ -2128,6 +2142,34 @@ const DubaiAIDashboard = () => {
           *::-webkit-scrollbar-thumb {
             background: rgba(148, 163, 184, 0.3);
             border-radius: 4px;
+          }
+          .kanban-column-scroll {
+            scrollbar-width: thin;
+            scrollbar-color: rgba(148, 163, 184, 0.4) transparent;
+          }
+          .kanban-column-scroll::-webkit-scrollbar {
+            width: 6px;
+          }
+          .kanban-column-scroll::-webkit-scrollbar-thumb {
+            background: rgba(148, 163, 184, 0.4);
+            border-radius: 3px;
+          }
+          .kanban-column-scroll::-webkit-scrollbar-thumb:hover {
+            background: rgba(148, 163, 184, 0.6);
+          }
+          .kanban-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+          }
+          @media (max-width: 1200px) {
+            .kanban-grid {
+              grid-template-columns: repeat(2, 1fr) !important;
+            }
+          }
+          @media (max-width: 768px) {
+            .kanban-grid {
+              grid-template-columns: 1fr !important;
+            }
           }
           input[type="date"]::-webkit-calendar-picker-indicator {
             filter: invert(1);
