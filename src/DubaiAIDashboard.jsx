@@ -764,6 +764,13 @@ const DubaiAIDashboard = () => {
     );
   }
 
+  // Log version on mount to verify deployment
+  useEffect(() => {
+    console.log('🚀 Dashboard Version: 2.0.0 - Normalized Tables');
+    console.log('📅 Deployed:', new Date().toISOString());
+    console.log('🔍 Check console for Supabase initialization status');
+  }, []);
+
   return (
     <div style={{
       minHeight: '100vh',

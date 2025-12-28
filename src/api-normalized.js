@@ -13,8 +13,13 @@ let supabase = null;
 
 if (supabaseUrl && supabaseAnonKey) {
   supabase = createClient(supabaseUrl, supabaseAnonKey);
+  console.log('✅ Supabase client initialized with URL:', supabaseUrl);
 } else {
-  console.warn('Supabase credentials not found.');
+  console.error('❌ Supabase credentials not found!');
+  console.error('Missing:', {
+    url: !supabaseUrl ? 'VITE_SUPABASE_URL' : null,
+    key: !supabaseAnonKey ? 'VITE_SUPABASE_ANON_KEY' : null
+  });
 }
 
 /**
