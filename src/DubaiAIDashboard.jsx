@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useEffect, useRef } from 'react';
-import { Calendar, CheckCircle2, Clock, AlertCircle, ChevronRight, Edit2, Save, Plus, Trash2, Link, FolderPlus, FilePlus, Loader2 } from 'lucide-react';
+import { Calendar, CheckCircle2, Clock, AlertCircle, ChevronRight, ChevronLeft, Edit2, Save, Plus, Trash2, Link, FolderPlus, FilePlus, Loader2 } from 'lucide-react';
 import { fetchAllDashboardData, updateStage, updateJourneyNotes, updateDependency, fetchUserPreferences, saveUserPreferences } from './api-normalized';
 
 const DubaiAIDashboard = () => {
@@ -389,6 +389,7 @@ const DubaiAIDashboard = () => {
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState(null);
   const [showJourneyNotesInput, setShowJourneyNotesInput] = useState(false);
+  const [isNavbarCollapsed, setIsNavbarCollapsed] = useState(false);
   
   // Refs for debouncing API calls
   const saveTimeoutRef = useRef(null);
@@ -520,7 +521,7 @@ const DubaiAIDashboard = () => {
     return <Calendar size={16} />;
   };
 
-  // Kanban column configuration
+  // Kanban column configuration - All 6 statuses
   const kanbanColumns = [
     { 
       status: 'not-started', 
@@ -531,7 +532,7 @@ const DubaiAIDashboard = () => {
     },
     { 
       status: 'active', 
-      label: 'Active', 
+      label: 'In Progress', 
       color: '#3b82f6',
       bgColor: 'rgba(59, 130, 246, 0.1)',
       borderColor: 'rgba(59, 130, 246, 0.3)'
@@ -544,6 +545,20 @@ const DubaiAIDashboard = () => {
       borderColor: 'rgba(239, 68, 68, 0.3)'
     },
     { 
+      status: 'pending', 
+      label: 'Pending', 
+      color: '#f59e0b',
+      bgColor: 'rgba(245, 158, 11, 0.1)',
+      borderColor: 'rgba(245, 158, 11, 0.3)'
+    },
+    { 
+      status: 'blocked', 
+      label: 'Blocked', 
+      color: '#dc2626',
+      bgColor: 'rgba(220, 38, 38, 0.1)',
+      borderColor: 'rgba(220, 38, 38, 0.3)'
+    },
+    { 
       status: 'done', 
       label: 'Done', 
       color: '#10b981',
@@ -552,10 +567,8 @@ const DubaiAIDashboard = () => {
     }
   ];
 
-  // Map status to column (handle pending/blocked)
+  // Map status to column (no mapping needed now - all statuses have columns)
   const getColumnForStatus = (status) => {
-    if (status === 'pending') return 'not-started';
-    if (status === 'blocked') return 'critical';
     return status;
   };
 
@@ -905,7 +918,7 @@ const DubaiAIDashboard = () => {
 
       {/* Sidebar */}
       <div style={{
-        width: '320px',
+        width: isNavbarCollapsed ? '60px' : '320px',
         background: 'rgba(15, 23, 42, 0.8)',
         backdropFilter: 'blur(20px)',
         borderRight: '1px solid rgba(148, 163, 184, 0.1)',
@@ -913,62 +926,106 @@ const DubaiAIDashboard = () => {
         flexDirection: 'column',
         height: '100vh',
         overflowY: 'auto',
+        overflowX: 'hidden',
         position: 'sticky',
-        top: 0
+        top: 0,
+        transition: 'width 0.3s ease'
       }}>
         {/* Header */}
         <div style={{
-          padding: '32px 24px',
-          borderBottom: '1px solid rgba(148, 163, 184, 0.1)'
+          padding: isNavbarCollapsed ? '24px 12px' : '32px 24px',
+          borderBottom: '1px solid rgba(148, 163, 184, 0.1)',
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'flex-start',
+          position: 'relative'
         }}>
-          <div style={{
-            fontSize: '28px',
-            fontWeight: '800',
-            background: 'linear-gradient(135deg, #60a5fa 0%, #a78bfa 100%)',
-            WebkitBackgroundClip: 'text',
-            WebkitTextFillColor: 'transparent',
-            marginBottom: '8px'
-          }}>
-            Dubai AI
-          </div>
-          <div style={{ fontSize: '14px', color: '#94a3b8', fontWeight: '500' }}>
-            Action Plan Timeline
-          </div>
+          {!isNavbarCollapsed && (
+            <>
+              <div style={{ flex: 1 }}>
+                <div style={{
+                  fontSize: '28px',
+                  fontWeight: '800',
+                  background: 'linear-gradient(135deg, #60a5fa 0%, #a78bfa 100%)',
+                  WebkitBackgroundClip: 'text',
+                  WebkitTextFillColor: 'transparent',
+                  marginBottom: '8px'
+                }}>
+                  Dubai AI
+                </div>
+                <div style={{ fontSize: '14px', color: '#94a3b8', fontWeight: '500' }}>
+                  Action Plan Timeline
+                </div>
+              </div>
+            </>
+          )}
+          <button
+            onClick={() => setIsNavbarCollapsed(!isNavbarCollapsed)}
+            style={{
+              padding: '8px',
+              background: 'rgba(59, 130, 246, 0.15)',
+              border: '1px solid rgba(59, 130, 246, 0.3)',
+              borderRadius: '6px',
+              color: '#60a5fa',
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              transition: 'all 0.2s',
+              position: isNavbarCollapsed ? 'relative' : 'absolute',
+              top: isNavbarCollapsed ? '0' : '32px',
+              right: isNavbarCollapsed ? '0' : '12px',
+              width: '36px',
+              height: '36px'
+            }}
+            title={isNavbarCollapsed ? 'Expand navbar' : 'Collapse navbar'}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.background = 'rgba(59, 130, 246, 0.25)';
+              e.currentTarget.style.borderColor = 'rgba(59, 130, 246, 0.5)';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.background = 'rgba(59, 130, 246, 0.15)';
+              e.currentTarget.style.borderColor = 'rgba(59, 130, 246, 0.3)';
+            }}
+          >
+            {isNavbarCollapsed ? <ChevronRight size={18} /> : <ChevronLeft size={18} />}
+          </button>
         </div>
 
         {/* Categories */}
-        <div style={{ padding: '24px' }}>
-          <div style={{
-            display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'center',
-            marginBottom: '16px'
-          }}>
+        {!isNavbarCollapsed && (
+          <div style={{ padding: '24px' }}>
             <div style={{
-              fontSize: '12px',
-              textTransform: 'uppercase',
-              color: '#64748b',
-              fontWeight: '700'
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              marginBottom: '16px'
             }}>
-              Overview
+              <div style={{
+                fontSize: '12px',
+                textTransform: 'uppercase',
+                color: '#64748b',
+                fontWeight: '700'
+              }}>
+                Overview
+              </div>
+              {editMode && (
+                <button
+                  onClick={() => setShowAddCategory(!showAddCategory)}
+                  style={{
+                    padding: '6px',
+                    background: 'rgba(59, 130, 246, 0.15)',
+                    border: '1px solid rgba(59, 130, 246, 0.3)',
+                    borderRadius: '6px',
+                    color: '#60a5fa',
+                    cursor: 'pointer',
+                    display: 'flex'
+                  }}
+                >
+                  <FolderPlus size={14} />
+                </button>
+              )}
             </div>
-            {editMode && (
-              <button
-                onClick={() => setShowAddCategory(!showAddCategory)}
-                style={{
-                  padding: '6px',
-                  background: 'rgba(59, 130, 246, 0.15)',
-                  border: '1px solid rgba(59, 130, 246, 0.3)',
-                  borderRadius: '6px',
-                  color: '#60a5fa',
-                  cursor: 'pointer',
-                  display: 'flex'
-                }}
-              >
-                <FolderPlus size={14} />
-              </button>
-            )}
-          </div>
 
           {showAddCategory && (
             <div style={{
@@ -1109,8 +1166,10 @@ const DubaiAIDashboard = () => {
             ))}
           </div>
         </div>
+        )}
 
         {/* Journeys */}
+        {!isNavbarCollapsed && (
         <div style={{ padding: '24px', flex: 1 }}>
           <div style={{
             display: 'flex',
@@ -1349,7 +1408,7 @@ const DubaiAIDashboard = () => {
             ))}
             
             {/* Quick Add Journey Button at the end */}
-            {!showAddJourney && (
+            {!showAddJourney && !isNavbarCollapsed && (
               <button
                 onClick={() => setShowAddJourney(true)}
                 style={{
@@ -1382,6 +1441,7 @@ const DubaiAIDashboard = () => {
             )}
           </div>
         </div>
+        )}
       </div>
 
       {/* Main Content */}
@@ -1568,13 +1628,13 @@ const DubaiAIDashboard = () => {
             )}
           </div>
 
-          {/* Kanban Columns - Grid Layout (2x2, responsive) */}
+          {/* Kanban Columns - Horizontal Layout */}
           <div 
-            className="kanban-grid"
             style={{
-              display: 'grid',
-              gridTemplateColumns: 'repeat(2, 1fr)',
+              display: 'flex',
+              alignItems: 'flex-start', // Prevent columns from stretching to match tallest
               gap: '16px',
+              overflowX: 'auto',
               paddingBottom: '8px'
             }}
           >
@@ -1587,6 +1647,8 @@ const DubaiAIDashboard = () => {
                 <div
                   key={column.status}
                   style={{
+                    flex: '0 0 280px',
+                    minWidth: '280px',
                     background: column.bgColor,
                     border: `1px solid ${column.borderColor}`,
                     borderRadius: '12px',
@@ -1594,9 +1656,11 @@ const DubaiAIDashboard = () => {
                     display: 'flex',
                     flexDirection: 'column',
                     gap: '12px',
-                    height: isEmpty ? 'auto' : '600px',
-                    maxHeight: isEmpty ? 'none' : '600px',
-                    minHeight: isEmpty ? 'auto' : '200px'
+                    height: isEmpty ? '200px' : '600px', // Fixed height for non-empty, min for empty
+                    maxHeight: isEmpty ? '200px' : '600px',
+                    minHeight: isEmpty ? '200px' : '0', // No min height for non-empty columns
+                    alignSelf: 'flex-start', // Ensure each column has independent height
+                    overflow: 'hidden' // Prevent column itself from scrolling
                   }}
                 >
                   {/* Column Header */}
@@ -1646,11 +1710,11 @@ const DubaiAIDashboard = () => {
                       display: 'flex',
                       flexDirection: 'column',
                       gap: '12px',
-                      overflowY: isEmpty ? 'visible' : 'auto',
-                      overflowX: 'hidden',
-                      flex: isEmpty ? '0 1 auto' : '1 1 0',
+                      flex: '1 1 0', // Take available space
                       minHeight: isEmpty ? 'auto' : '0',
-                      paddingRight: isEmpty ? '0' : '4px'
+                      overflowY: isEmpty ? 'visible' : 'auto', // Scroll when content exceeds max height
+                      overflowX: 'hidden',
+                      paddingRight: isEmpty ? '0' : '4px' // Space for scrollbar
                     }}
                   >
                     {columnStages.length === 0 ? (
@@ -1747,7 +1811,7 @@ const DubaiAIDashboard = () => {
                                 }}
                               >
                                 <option value="not-started">Not Started</option>
-                                <option value="active">Active</option>
+                                <option value="active">In Progress</option>
                                 <option value="critical">Critical</option>
                                 <option value="done">Done</option>
                                 <option value="pending">Pending</option>
@@ -1846,12 +1910,8 @@ const DubaiAIDashboard = () => {
                                 borderRadius: '6px',
                                 fontSize: '12px',
                                 color: '#cbd5e1',
-                                maxHeight: '60px',
-                                overflow: 'hidden',
-                                textOverflow: 'ellipsis',
-                                display: '-webkit-box',
-                                WebkitLineClamp: 2,
-                                WebkitBoxOrient: 'vertical'
+                                wordWrap: 'break-word',
+                                whiteSpace: 'pre-wrap' // Preserve line breaks and wrap text
                               }}>
                                 {editMode ? (
                                   <textarea
@@ -1872,7 +1932,7 @@ const DubaiAIDashboard = () => {
                                     placeholder="Add notes..."
                                   />
                                 ) : (
-                                  <span>{stage.notes}</span>
+                                  <span style={{ display: 'block' }}>{stage.notes}</span>
                                 )}
                               </div>
                             )}
