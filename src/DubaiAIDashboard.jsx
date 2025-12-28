@@ -1,6 +1,6 @@
 import React, { useState, useMemo, useEffect, useRef } from 'react';
-import { Calendar, CheckCircle2, Clock, AlertCircle, ChevronRight, ChevronLeft, Edit2, Save, Plus, Trash2, Link, FolderPlus, FilePlus, Loader2 } from 'lucide-react';
-import { fetchAllDashboardData, updateStage, updateJourneyNotes, updateDependency, fetchUserPreferences, saveUserPreferences } from './api-normalized';
+import { Calendar, CheckCircle2, Clock, AlertCircle, ChevronRight, ChevronLeft, Edit2, Save, Plus, Trash2, Link, FolderPlus, FilePlus, Loader2, Sun, Moon } from 'lucide-react';
+import { fetchAllDashboardData, updateStage, updateJourneyNotes, updateJourney, updateDependency, createDependency, deleteDependency, createCategory, deleteCategory as deleteCategoryAPI, updateCategory, getCategoryByName, createJourney, deleteJourney as deleteJourneyAPI, createStage, deleteStage as deleteStageAPI, fetchUserPreferences, saveUserPreferences } from './api-normalized';
 
 const DubaiAIDashboard = () => {
   // Default/initial data with all journeys - Complete Journey Data
@@ -372,6 +372,125 @@ const DubaiAIDashboard = () => {
     ]
   };
 
+  // Theme configuration
+  const themes = {
+    dark: {
+      bg: {
+        main: 'linear-gradient(135deg, #0f172a 0%, #1e293b 100%)',
+        card: 'rgba(30, 41, 59, 0.5)',
+        cardHover: 'rgba(30, 41, 59, 0.8)',
+        sidebar: 'rgba(15, 23, 42, 0.8)',
+        input: 'rgba(15, 23, 42, 0.8)',
+        inputFocus: 'rgba(30, 41, 59, 0.6)',
+        button: 'rgba(59, 130, 246, 0.15)',
+        buttonHover: 'rgba(59, 130, 246, 0.25)',
+        error: 'rgba(239, 68, 68, 0.9)',
+        saving: 'rgba(59, 130, 246, 0.9)',
+        notes: 'rgba(30, 41, 59, 0.4)',
+        stageCard: 'rgba(15, 23, 42, 0.8)',
+        progressBar: 'rgba(15, 23, 42, 0.8)',
+        tableHeader: 'rgba(15, 23, 42, 0.6)',
+        categoryCard: 'rgba(30, 41, 59, 0.5)',
+        categoryCardSelected: 'linear-gradient(135deg, rgba(59, 130, 246, 0.15), rgba(147, 51, 234, 0.15))',
+        journeyNote: 'rgba(245, 158, 11, 0.1)',
+        journeyNoteBorder: 'rgba(245, 158, 11, 0.3)',
+        journeyNoteText: '#fbbf24',
+        journeyItem: 'transparent',
+        journeyItemSelected: 'rgba(59, 130, 246, 0.25)',
+        journeyItemSelectedBorder: 'rgba(59, 130, 246, 0.5)'
+      },
+      text: {
+        primary: '#f1f5f9',
+        secondary: '#e2e8f0',
+        tertiary: '#cbd5e1',
+        muted: '#94a3b8',
+        disabled: '#64748b',
+        journeyNote: '#fbbf24'
+      },
+      border: {
+        default: 'rgba(148, 163, 184, 0.1)',
+        focus: 'rgba(148, 163, 184, 0.2)',
+        accent: 'rgba(59, 130, 246, 0.3)',
+        categorySelected: 'rgba(59, 130, 246, 0.3)',
+        journeyNote: 'rgba(245, 158, 11, 0.3)'
+      },
+      status: {
+        notStarted: '#6b7280',
+        inProgress: '#3b82f6',
+        critical: '#ef4444',
+        done: '#10b981',
+        inProgressBg: 'rgba(59, 130, 246, 0.15)',
+        criticalBg: 'rgba(239, 68, 68, 0.15)',
+        doneBg: 'rgba(16, 185, 129, 0.15)'
+      }
+    },
+    light: {
+      bg: {
+        main: 'linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%)',
+        card: 'rgba(255, 255, 255, 0.9)',
+        cardHover: 'rgba(255, 255, 255, 1)',
+        sidebar: 'rgba(255, 255, 255, 0.95)',
+        input: 'rgba(248, 250, 252, 0.9)',
+        inputFocus: 'rgba(241, 245, 249, 1)',
+        button: 'rgba(59, 130, 246, 0.1)',
+        buttonHover: 'rgba(59, 130, 246, 0.2)',
+        error: 'rgba(239, 68, 68, 0.95)',
+        saving: 'rgba(59, 130, 246, 0.95)',
+        notes: 'rgba(241, 245, 249, 0.9)',
+        stageCard: 'rgba(255, 255, 255, 0.95)',
+        progressBar: 'rgba(241, 245, 249, 0.8)',
+        tableHeader: 'rgba(241, 245, 249, 0.8)',
+        categoryCard: 'rgba(255, 255, 255, 0.8)',
+        categoryCardSelected: 'linear-gradient(135deg, rgba(59, 130, 246, 0.2), rgba(147, 51, 234, 0.2))',
+        journeyNote: 'rgba(254, 243, 199, 0.95)',
+        journeyNoteBorder: 'rgba(217, 119, 6, 0.7)',
+        journeyNoteText: '#92400e',
+        journeyItem: 'rgba(241, 245, 249, 0.7)',
+        journeyItemSelected: 'rgba(59, 130, 246, 0.35)',
+        journeyItemSelectedBorder: 'rgba(59, 130, 246, 0.6)'
+      },
+      text: {
+        primary: '#0f172a',
+        secondary: '#1e293b',
+        tertiary: '#334155',
+        muted: '#64748b',
+        disabled: '#94a3b8',
+        journeyNote: '#92400e'
+      },
+      border: {
+        default: 'rgba(148, 163, 184, 0.3)',
+        focus: 'rgba(148, 163, 184, 0.4)',
+        accent: 'rgba(59, 130, 246, 0.4)',
+        categorySelected: 'rgba(59, 130, 246, 0.5)',
+        journeyNote: 'rgba(217, 119, 6, 0.7)'
+      },
+      status: {
+        notStarted: '#64748b',
+        inProgress: '#2563eb',
+        critical: '#dc2626',
+        done: '#059669',
+        inProgressBg: 'rgba(59, 130, 246, 0.15)',
+        criticalBg: 'rgba(239, 68, 68, 0.15)',
+        doneBg: 'rgba(16, 185, 129, 0.15)'
+      }
+    }
+  };
+
+  // Theme state - load from localStorage or default to dark
+  const [theme, setTheme] = useState(() => {
+    const savedTheme = localStorage.getItem('dubai-ai-theme');
+    return savedTheme === 'light' ? 'light' : 'dark';
+  });
+
+  const currentTheme = themes[theme];
+
+  // Toggle theme and save to localStorage
+  const toggleTheme = () => {
+    const newTheme = theme === 'dark' ? 'light' : 'dark';
+    setTheme(newTheme);
+    localStorage.setItem('dubai-ai-theme', newTheme);
+  };
+
   // State management
   const [journeyData, setJourneyData] = useState(defaultJourneyData);
   const [selectedCategory, setSelectedCategory] = useState('City Service');
@@ -460,6 +579,41 @@ const DubaiAIDashboard = () => {
   }, []);
 
   // Note: Bulk save removed - now using granular updates per field
+
+  // Add global styles via useEffect
+  useEffect(() => {
+    const style = document.createElement('style');
+    style.id = 'dubai-ai-styles';
+    const filterValue = theme === 'dark' ? 'invert(1)' : 'invert(0)';
+    const cssText = [
+      '* { scrollbar-width: thin; scrollbar-color: rgba(148, 163, 184, 0.3) transparent; }',
+      '*::-webkit-scrollbar { width: 8px; height: 8px; }',
+      '*::-webkit-scrollbar-thumb { background: rgba(148, 163, 184, 0.3); border-radius: 4px; }',
+      '.kanban-column-scroll { scrollbar-width: thin; scrollbar-color: rgba(148, 163, 184, 0.4) transparent; }',
+      '.kanban-column-scroll::-webkit-scrollbar { width: 6px; }',
+      '.kanban-column-scroll::-webkit-scrollbar-thumb { background: rgba(148, 163, 184, 0.4); border-radius: 3px; }',
+      '.kanban-column-scroll::-webkit-scrollbar-thumb:hover { background: rgba(148, 163, 184, 0.6); }',
+      'input[type="date"]::-webkit-calendar-picker-indicator { filter: ' + filterValue + '; cursor: pointer; }',
+      'input[type="date"]::-webkit-inner-spin-button { filter: ' + filterValue + '; }',
+      '.kanban-grid { display: grid; grid-template-columns: repeat(2, 1fr); }',
+      '@media (max-width: 1200px) { .kanban-grid { grid-template-columns: repeat(2, 1fr) !important; } }',
+      '@media (max-width: 768px) { .kanban-grid { grid-template-columns: 1fr !important; } }',
+      '@keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }',
+      '.animate-spin { animation: spin 1s linear infinite; }'
+    ].join(' ');
+    style.textContent = cssText;
+    const existing = document.getElementById('dubai-ai-styles');
+    if (existing) {
+      existing.remove();
+    }
+    document.head.appendChild(style);
+    return () => {
+      const styleEl = document.getElementById('dubai-ai-styles');
+      if (styleEl) {
+        styleEl.remove();
+      }
+    };
+  }, [theme]);
 
   // Debounced save preferences to API
   useEffect(() => {
@@ -596,6 +750,13 @@ const DubaiAIDashboard = () => {
     });
   }, [journeyData]);
 
+  // Calculate overall progress percentage
+  const overallProgress = useMemo(() => {
+    const doneCount = currentJourney?.stages?.filter(s => s.status === 'done').length || 0;
+    const totalCount = currentJourney?.stages?.length || 1;
+    return totalCount > 0 ? Math.round((doneCount * 100) / totalCount) : 0;
+  }, [currentJourney]);
+
   const updateStageLocal = (stageIndex, field, value) => {
     // Update local state only (no API call - will save on Save button click)
     setJourneyData(prev => {
@@ -622,9 +783,15 @@ const DubaiAIDashboard = () => {
 
       // Save all stages
       if (currentJourney.stages) {
-        const savePromises = currentJourney.stages.map(async (stage) => {
+        const stageUpdates = [];
+        const newStages = [];
+        
+        // Separate updates and creates
+        currentJourney.stages.forEach((stage, index) => {
           if (stage.id) {
+            // Update existing stage
             const updates = {};
+            if (stage.name !== undefined) updates.name = stage.name;
             if (stage.status !== undefined) updates.status = stage.status;
             if (stage.progress !== undefined) updates.progress = stage.progress;
             if (stage.eta !== undefined) {
@@ -636,28 +803,117 @@ const DubaiAIDashboard = () => {
             if (stage.notes !== undefined) updates.notes = stage.notes || '';
             
             if (Object.keys(updates).length > 0) {
-              await updateStage(stage.id, updates);
+              stageUpdates.push({ id: stage.id, updates, originalIndex: index });
             }
+          } else {
+            // Create new stage
+            newStages.push({ stage, originalIndex: index });
           }
         });
-        await Promise.all(savePromises);
+        
+        // Execute all updates
+        await Promise.all(
+          stageUpdates.map(({ id, updates }) => updateStage(id, updates))
+        );
+        
+        // Create all new stages
+        const createdStages = await Promise.all(
+          newStages.map(({ stage }) => 
+            createStage(currentJourney.id, {
+              name: stage.name || 'New Stage',
+              status: stage.status || 'not-started',
+              progress: stage.progress || 0,
+              eta: stage.eta === '' ? null : stage.eta,
+              actual: stage.actual === '' ? null : stage.actual,
+              notes: stage.notes || '',
+              display_order: stage.display_order || currentJourney.stages.length
+            })
+          )
+        );
+        
+        // Update local state with new IDs
+        if (createdStages.length > 0) {
+          setJourneyData(prev => {
+            const newData = JSON.parse(JSON.stringify(prev));
+            const journeyIndex = newData[selectedCategory].findIndex(j => j.name === selectedJourney);
+            newStages.forEach(({ originalIndex }, i) => {
+              const createdStage = createdStages[i];
+              if (newData[selectedCategory][journeyIndex].stages[originalIndex]) {
+                newData[selectedCategory][journeyIndex].stages[originalIndex] = {
+                  id: createdStage.id,
+                  name: createdStage.name,
+                  status: createdStage.status,
+                  progress: createdStage.progress,
+                  eta: createdStage.eta || '',
+                  actual: createdStage.actual || '',
+                  notes: createdStage.notes || '',
+                  display_order: createdStage.display_order
+                };
+              }
+            });
+            return newData;
+          });
+        }
       }
 
       // Save all dependencies
       if (currentJourney.dependencies) {
-        const depPromises = currentJourney.dependencies.map(async (dep) => {
+        const depUpdates = [];
+        const newDeps = [];
+        
+        // Separate updates and creates
+        currentJourney.dependencies.forEach((dep, index) => {
           if (dep.id) {
+            // Update existing dependency
             const updates = {};
             if (dep.item !== undefined) updates.item = dep.item;
             if (dep.dependsOn !== undefined) updates.depends_on = dep.dependsOn;
             if (dep.status !== undefined) updates.status = dep.status;
             
             if (Object.keys(updates).length > 0) {
-              await updateDependency(dep.id, updates);
+              depUpdates.push({ id: dep.id, updates, originalIndex: index });
             }
+          } else {
+            // Create new dependency
+            newDeps.push({ dep, originalIndex: index });
           }
         });
-        await Promise.all(depPromises);
+        
+        // Execute all updates
+        await Promise.all(
+          depUpdates.map(({ id, updates }) => updateDependency(id, updates))
+        );
+        
+        // Create all new dependencies
+        const createdDeps = await Promise.all(
+          newDeps.map(({ dep }) => 
+            createDependency(currentJourney.id, {
+              item: dep.item || 'New Item',
+              dependsOn: dep.dependsOn || 'Dependency',
+              status: dep.status || 'critical'
+            })
+          )
+        );
+        
+        // Update local state with new IDs
+        if (createdDeps.length > 0) {
+          setJourneyData(prev => {
+            const newData = JSON.parse(JSON.stringify(prev));
+            const journeyIndex = newData[selectedCategory].findIndex(j => j.name === selectedJourney);
+            newDeps.forEach(({ originalIndex }, i) => {
+              const createdDep = createdDeps[i];
+              if (newData[selectedCategory][journeyIndex].dependencies[originalIndex]) {
+                newData[selectedCategory][journeyIndex].dependencies[originalIndex] = {
+                  id: createdDep.id,
+                  item: createdDep.item,
+                  dependsOn: createdDep.depends_on,
+                  status: createdDep.status
+                };
+              }
+            });
+            return newData;
+          });
+        }
       }
 
       setError(null);
@@ -669,29 +925,79 @@ const DubaiAIDashboard = () => {
     }
   };
 
-  const addStage = () => {
-    setJourneyData(prev => {
-      const newData = JSON.parse(JSON.stringify(prev));
-      const journeyIndex = newData[selectedCategory].findIndex(j => j.name === selectedJourney);
-      newData[selectedCategory][journeyIndex].stages.push({
+  const addStage = async () => {
+    if (!currentJourney || !currentJourney.id) {
+      alert('Please select a journey first');
+      return;
+    }
+    
+    try {
+      // Get max display_order for this journey's stages
+      const maxOrder = currentJourney.stages.length > 0
+        ? Math.max(...currentJourney.stages.map(s => s.display_order || 0), -1)
+        : -1;
+      
+      // Create stage in database
+      const newStage = await createStage(currentJourney.id, {
         name: 'New Stage',
         status: 'not-started',
         progress: 0,
-        eta: '',
-        actual: '',
-        notes: ''
+        eta: null,
+        actual: null,
+        notes: '',
+        display_order: maxOrder + 1
       });
-      return newData;
-    });
+      
+      // Update local state with new stage (including ID)
+      setJourneyData(prev => {
+        const newData = JSON.parse(JSON.stringify(prev));
+        const journeyIndex = newData[selectedCategory].findIndex(j => j.name === selectedJourney);
+        if (journeyIndex !== -1) {
+          newData[selectedCategory][journeyIndex].stages.push({
+            id: newStage.id,
+            name: newStage.name,
+            status: newStage.status,
+            progress: newStage.progress,
+            eta: newStage.eta || '',
+            actual: newStage.actual || '',
+            notes: newStage.notes || '',
+            display_order: newStage.display_order
+          });
+        }
+        return newData;
+      });
+    } catch (err) {
+      console.error('Error creating stage:', err);
+      alert('Failed to create stage. Please try again.');
+    }
   };
 
-  const deleteStage = (stageIndex) => {
-    setJourneyData(prev => {
-      const newData = JSON.parse(JSON.stringify(prev));
-      const journeyIndex = newData[selectedCategory].findIndex(j => j.name === selectedJourney);
-      newData[selectedCategory][journeyIndex].stages.splice(stageIndex, 1);
-      return newData;
-    });
+  const deleteStage = async (stageIndex) => {
+    if (!currentJourney || !currentJourney.stages || !currentJourney.stages[stageIndex]) {
+      return;
+    }
+    
+    const stage = currentJourney.stages[stageIndex];
+    
+    try {
+      // Delete from database if it has an ID
+      if (stage.id) {
+        await deleteStageAPI(stage.id);
+      }
+      
+      // Remove from local state
+      setJourneyData(prev => {
+        const newData = JSON.parse(JSON.stringify(prev));
+        const journeyIndex = newData[selectedCategory].findIndex(j => j.name === selectedJourney);
+        if (journeyIndex !== -1) {
+          newData[selectedCategory][journeyIndex].stages.splice(stageIndex, 1);
+        }
+        return newData;
+      });
+    } catch (err) {
+      console.error('Error deleting stage:', err);
+      alert('Failed to delete stage. Please try again.');
+    }
   };
 
   const updateDependencyLocal = (depIndex, field, value) => {
@@ -717,7 +1023,20 @@ const DubaiAIDashboard = () => {
     });
   };
 
-  const deleteDependency = (depIndex) => {
+  const deleteDependencyLocal = async (depIndex) => {
+    const dep = currentJourney?.dependencies[depIndex];
+    
+    // Delete from database if it has an ID
+    if (dep?.id) {
+      try {
+        await deleteDependency(dep.id);
+      } catch (err) {
+        console.error('Error deleting dependency from database:', err);
+        // Still remove from local state even if DB delete fails
+      }
+    }
+    
+    // Remove from local state
     setJourneyData(prev => {
       const newData = JSON.parse(JSON.stringify(prev));
       const journeyIndex = newData[selectedCategory].findIndex(j => j.name === selectedJourney);
@@ -736,81 +1055,176 @@ const DubaiAIDashboard = () => {
     });
   };
 
-  const updateJourneyName = (oldName, newName) => {
+  const updateJourneyName = async (oldName, newName) => {
     if (!newName.trim() || newName === oldName) return;
-    setJourneyData(prev => {
-      const newData = JSON.parse(JSON.stringify(prev));
-      const journeyIndex = newData[selectedCategory].findIndex(j => j.name === oldName);
-      if (journeyIndex !== -1) {
-        newData[selectedCategory][journeyIndex].name = newName;
-        if (selectedJourney === oldName) {
-          setSelectedJourney(newName);
-        }
+    
+    try {
+      // Find the journey in current data to get its ID
+      const journey = journeyData[selectedCategory].find(j => j.name === oldName);
+      if (!journey || !journey.id) {
+        console.error('Journey not found or missing ID');
+        return;
       }
-      return newData;
-    });
+      
+      // Update journey name in database
+      await updateJourney(journey.id, { name: newName });
+      
+      // Update local state
+      setJourneyData(prev => {
+        const newData = JSON.parse(JSON.stringify(prev));
+        const journeyIndex = newData[selectedCategory].findIndex(j => j.name === oldName);
+        if (journeyIndex !== -1) {
+          newData[selectedCategory][journeyIndex].name = newName;
+          if (selectedJourney === oldName) {
+            setSelectedJourney(newName);
+          }
+        }
+        return newData;
+      });
+    } catch (err) {
+      console.error('Error updating journey name:', err);
+      alert('Failed to update journey name. Please try again.');
+    }
   };
 
-  const addCategory = () => {
+  const addCategory = async () => {
     if (!newCategoryName.trim()) return;
-    setJourneyData(prev => ({ ...prev, [newCategoryName]: [] }));
-    setSelectedCategory(newCategoryName);
-    setNewCategoryName('');
-    setShowAddCategory(false);
+    
+    try {
+      // Get max display_order to append new category at the end
+      const maxOrder = Math.max(...Object.values(journeyData).map((_, idx) => idx), -1);
+      
+      // Create category in database
+      await createCategory(newCategoryName, maxOrder + 1);
+      
+      // Refresh data from database
+      const freshData = await fetchAllDashboardData();
+      setJourneyData(freshData);
+      
+      // Select the new category
+      setSelectedCategory(newCategoryName);
+      setNewCategoryName('');
+      setShowAddCategory(false);
+    } catch (err) {
+      console.error('Error creating category:', err);
+      alert('Failed to create category. Please try again.');
+    }
   };
 
-  const deleteCategory = (category) => {
+  const deleteCategory = async (category) => {
     if (Object.keys(journeyData).length <= 1) {
       alert('Cannot delete the last category');
       return;
     }
-    if (!window.confirm(`Delete "${category}"?`)) return;
+    if (!window.confirm(`Delete "${category}"? This will delete all journeys, stages, and dependencies in this category.`)) return;
     
-    setJourneyData(prev => {
-      const newData = { ...prev };
-      delete newData[category];
-      return newData;
-    });
-    
-    const remaining = Object.keys(journeyData).filter(c => c !== category);
-    setSelectedCategory(remaining[0]);
-    setSelectedJourney(journeyData[remaining[0]][0]?.name || '');
+    try {
+      // Get category ID from database
+      const categoryData = await getCategoryByName(category);
+      if (!categoryData) {
+        alert('Category not found in database');
+        return;
+      }
+      
+      // Delete category from database (cascades to journeys, stages, dependencies)
+      await deleteCategoryAPI(categoryData.id);
+      
+      // Refresh data from database
+      const freshData = await fetchAllDashboardData();
+      setJourneyData(freshData);
+      
+      // Select first remaining category
+      const remaining = Object.keys(freshData);
+      if (remaining.length > 0) {
+        setSelectedCategory(remaining[0]);
+        setSelectedJourney(freshData[remaining[0]][0]?.name || '');
+      }
+    } catch (err) {
+      console.error('Error deleting category:', err);
+      alert('Failed to delete category. Please try again.');
+    }
   };
 
-  const addJourney = () => {
+  const addJourney = async () => {
     if (!newJourneyName.trim()) return;
     
-    setJourneyData(prev => {
-      const newData = JSON.parse(JSON.stringify(prev));
-      newData[selectedCategory].push({
+    try {
+      // Get category ID from database
+      const categoryData = await getCategoryByName(selectedCategory);
+      if (!categoryData) {
+        alert('Category not found in database');
+        return;
+      }
+      
+      // Create journey in database
+      const newJourney = await createJourney(categoryData.id, {
         name: newJourneyName,
-        stages: getDefaultStages(),
-        notes: '',
-        dependencies: []
+        notes: ''
       });
-      return newData;
-    });
-    
-    setSelectedJourney(newJourneyName);
-    setNewJourneyName('');
-    setShowAddJourney(false);
+      
+      // Create default stages for the journey
+      const defaultStages = getDefaultStages();
+      for (let i = 0; i < defaultStages.length; i++) {
+        await createStage(newJourney.id, {
+          ...defaultStages[i],
+          display_order: i
+        });
+      }
+      
+      // Refresh data from database
+      const freshData = await fetchAllDashboardData();
+      setJourneyData(freshData);
+      
+      // Select the new journey
+      setSelectedJourney(newJourneyName);
+      setNewJourneyName('');
+      setShowAddJourney(false);
+    } catch (err) {
+      console.error('Error creating journey:', err);
+      alert('Failed to create journey. Please try again.');
+    }
   };
 
-  const deleteJourney = (journeyName) => {
+  const deleteJourney = async (journeyName) => {
     if (journeyData[selectedCategory].length <= 1) {
       alert('Cannot delete the last journey');
       return;
     }
-    if (!window.confirm(`Delete "${journeyName}"?`)) return;
+    if (!window.confirm(`Delete "${journeyName}"? This will delete all stages and dependencies for this journey.`)) return;
     
-    setJourneyData(prev => {
-      const newData = JSON.parse(JSON.stringify(prev));
-      newData[selectedCategory] = newData[selectedCategory].filter(j => j.name !== journeyName);
-      return newData;
-    });
-    
-    const remaining = journeyData[selectedCategory].filter(j => j.name !== journeyName);
-    setSelectedJourney(remaining[0]?.name || '');
+    try {
+      // Find the journey in current data to get its ID
+      const journey = journeyData[selectedCategory].find(j => j.name === journeyName);
+      if (!journey || !journey.id) {
+        alert('Journey not found in database');
+        return;
+      }
+      
+      // Delete journey from database (cascades to stages and dependencies)
+      await deleteJourneyAPI(journey.id);
+      
+      // Refresh data from database
+      const freshData = await fetchAllDashboardData();
+      setJourneyData(freshData);
+      
+      // Select first remaining journey in category
+      if (selectedJourney === journeyName) {
+        const remaining = freshData[selectedCategory] || [];
+        if (remaining.length > 0) {
+          setSelectedJourney(remaining[0]?.name || '');
+        } else {
+          // If no journeys left in category, select first journey from first category
+          const firstCategory = Object.keys(freshData)[0];
+          if (firstCategory && freshData[firstCategory].length > 0) {
+            setSelectedCategory(firstCategory);
+            setSelectedJourney(freshData[firstCategory][0]?.name || '');
+          }
+        }
+      }
+    } catch (err) {
+      console.error('Error deleting journey:', err);
+      alert('Failed to delete journey. Please try again.');
+    }
   };
 
   // Show loading screen
@@ -818,9 +1232,10 @@ const DubaiAIDashboard = () => {
     return (
       <div style={{
         minHeight: '100vh',
-        background: 'linear-gradient(135deg, #0f172a 0%, #1e293b 100%)',
+        background: currentTheme.bg.main,
         fontFamily: 'system-ui, -apple-system, sans-serif',
-        color: '#e2e8f0',
+        color: currentTheme.text.secondary,
+        transition: 'background 0.3s ease, color 0.3s ease',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
@@ -828,7 +1243,7 @@ const DubaiAIDashboard = () => {
         gap: '20px'
       }}>
         <Loader2 size={48} className="animate-spin" style={{ color: '#60a5fa' }} />
-        <div style={{ fontSize: '18px', fontWeight: '600' }}>Loading dashboard from cloud storage...</div>
+        <div style={{ fontSize: '18px', fontWeight: '600', color: currentTheme.text.primary }}>Loading dashboard from cloud storage...</div>
       </div>
     );
   }
@@ -836,11 +1251,12 @@ const DubaiAIDashboard = () => {
   return (
     <div style={{
       minHeight: '100vh',
-      background: 'linear-gradient(135deg, #0f172a 0%, #1e293b 100%)',
+      background: currentTheme.bg.main,
       fontFamily: 'system-ui, -apple-system, sans-serif',
-      color: '#e2e8f0',
+      color: currentTheme.text.secondary,
       display: 'flex',
-      position: 'relative'
+      position: 'relative',
+      transition: 'background 0.3s ease, color 0.3s ease'
     }}>
       {/* Error Banner */}
       {error && (
@@ -906,9 +1322,9 @@ const DubaiAIDashboard = () => {
       {/* Sidebar */}
       <div style={{
         width: isNavbarCollapsed ? '60px' : '320px',
-        background: 'rgba(15, 23, 42, 0.8)',
+        background: currentTheme.bg.sidebar,
         backdropFilter: 'blur(20px)',
-        borderRight: '1px solid rgba(148, 163, 184, 0.1)',
+        borderRight: `1px solid ${currentTheme.border.default}`,
         display: 'flex',
         flexDirection: 'column',
         height: '100vh',
@@ -916,7 +1332,7 @@ const DubaiAIDashboard = () => {
         overflowX: 'hidden',
         position: 'sticky',
         top: 0,
-        transition: 'width 0.3s ease'
+        transition: 'width 0.3s ease, background 0.3s ease, border-color 0.3s ease'
       }}>
         {/* Header */}
         <div style={{
@@ -940,7 +1356,7 @@ const DubaiAIDashboard = () => {
                 }}>
                   Dubai AI
                 </div>
-                <div style={{ fontSize: '14px', color: '#94a3b8', fontWeight: '500' }}>
+                <div style={{ fontSize: '14px', color: currentTheme.text.muted, fontWeight: '500' }}>
                   Action Plan Timeline
                 </div>
               </div>
@@ -1018,8 +1434,9 @@ const DubaiAIDashboard = () => {
             <div style={{
               marginBottom: '16px',
               padding: '12px',
-              background: 'rgba(30, 41, 59, 0.8)',
-              borderRadius: '8px'
+              background: currentTheme.bg.card,
+              borderRadius: '8px',
+              border: `1px solid ${currentTheme.border.default}`
             }}>
               <input
                 type="text"
@@ -1030,10 +1447,10 @@ const DubaiAIDashboard = () => {
                 style={{
                   width: '100%',
                   padding: '8px 12px',
-                  background: 'rgba(15, 23, 42, 0.8)',
-                  border: '1px solid rgba(148, 163, 184, 0.2)',
+                  background: currentTheme.bg.input,
+                  border: `1px solid ${currentTheme.border.default}`,
                   borderRadius: '6px',
-                  color: '#e2e8f0',
+                  color: currentTheme.text.secondary,
                   fontSize: '13px',
                   marginBottom: '8px',
                   fontFamily: 'inherit'
@@ -1084,11 +1501,11 @@ const DubaiAIDashboard = () => {
                   style={{
                     padding: '16px',
                     background: selectedCategory === category 
-                      ? 'linear-gradient(135deg, rgba(59, 130, 246, 0.15), rgba(147, 51, 234, 0.15))'
-                      : 'rgba(30, 41, 59, 0.5)',
+                      ? currentTheme.bg.categoryCardSelected
+                      : currentTheme.bg.categoryCard,
                     border: selectedCategory === category
-                      ? '1px solid rgba(59, 130, 246, 0.3)'
-                      : '1px solid rgba(148, 163, 184, 0.1)',
+                      ? `1px solid ${currentTheme.border.categorySelected}`
+                      : `1px solid ${currentTheme.border.default}`,
                     borderRadius: '12px',
                     cursor: 'pointer'
                   }}
@@ -1101,8 +1518,8 @@ const DubaiAIDashboard = () => {
                     <div style={{ fontSize: '15px', fontWeight: '700' }}>{category}</div>
                     <div style={{
                       fontSize: '12px',
-                      color: '#94a3b8',
-                      background: 'rgba(15, 23, 42, 0.6)',
+                      color: currentTheme.text.muted,
+                      background: currentTheme.bg.tableHeader,
                       padding: '4px 8px',
                       borderRadius: '6px'
                     }}>
@@ -1111,7 +1528,7 @@ const DubaiAIDashboard = () => {
                   </div>
                   <div style={{
                     height: '6px',
-                    background: 'rgba(30, 41, 59, 0.8)',
+                    background: currentTheme.bg.progressBar,
                     borderRadius: '3px',
                     overflow: 'hidden',
                     marginBottom: '8px'
@@ -1123,7 +1540,7 @@ const DubaiAIDashboard = () => {
                       borderRadius: '3px'
                     }} />
                   </div>
-                  <div style={{ fontSize: '13px', color: '#94a3b8' }}>
+                  <div style={{ fontSize: '13px', color: currentTheme.text.muted }}>
                     {progress}% Complete
                   </div>
                 </div>
@@ -1201,8 +1618,9 @@ const DubaiAIDashboard = () => {
             <div style={{
               marginBottom: '16px',
               padding: '12px',
-              background: 'rgba(30, 41, 59, 0.8)',
-              borderRadius: '8px'
+              background: currentTheme.bg.card,
+              borderRadius: '8px',
+              border: `1px solid ${currentTheme.border.default}`
             }}>
               <input
                 type="text"
@@ -1213,10 +1631,10 @@ const DubaiAIDashboard = () => {
                 style={{
                   width: '100%',
                   padding: '8px 12px',
-                  background: 'rgba(15, 23, 42, 0.8)',
-                  border: '1px solid rgba(148, 163, 184, 0.2)',
+                  background: currentTheme.bg.input,
+                  border: `1px solid ${currentTheme.border.default}`,
                   borderRadius: '6px',
-                  color: '#e2e8f0',
+                  color: currentTheme.text.secondary,
                   fontSize: '13px',
                   marginBottom: '8px',
                   fontFamily: 'inherit'
@@ -1310,10 +1728,10 @@ const DubaiAIDashboard = () => {
                       style={{
                         flex: 1,
                         padding: '6px 10px',
-                        background: 'rgba(15, 23, 42, 0.9)',
-                        border: '1px solid rgba(59, 130, 246, 0.5)',
+                        background: currentTheme.bg.input,
+                        border: `1px solid ${currentTheme.border.accent}`,
                         borderRadius: '6px',
-                        color: '#e2e8f0',
+                        color: currentTheme.text.secondary,
                         fontSize: '14px',
                         fontFamily: 'inherit',
                         fontWeight: '600'
@@ -1324,7 +1742,7 @@ const DubaiAIDashboard = () => {
                       style={{
                         fontSize: '14px',
                         fontWeight: selectedJourney === journey.name ? '700' : '600',
-                        color: selectedJourney === journey.name ? '#f1f5f9' : '#cbd5e1',
+                        color: selectedJourney === journey.name ? currentTheme.text.primary : currentTheme.text.tertiary,
                         flex: 1
                       }}
                       onDoubleClick={(e) => {
@@ -1340,7 +1758,7 @@ const DubaiAIDashboard = () => {
                     </div>
                   )}
                   {selectedJourney === journey.name && editingJourneyName !== journey.name && (
-                    <ChevronRight size={18} color="#60a5fa" />
+                    <ChevronRight size={18} color={currentTheme.status.inProgress} />
                   )}
                 </div>
                 {editMode && editingJourneyName !== journey.name && (
@@ -1434,11 +1852,11 @@ const DubaiAIDashboard = () => {
       {/* Main Content */}
       <div style={{ flex: 1, padding: '40px', overflowY: 'auto' }}>
         {/* Header */}
-        <div style={{ marginBottom: '40px', display: 'flex', justifyContent: 'space-between' }}>
-          <div>
+        <div style={{ marginBottom: '40px', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+          <div style={{ flex: 1 }}>
             <div style={{
               fontSize: '14px',
-              color: '#94a3b8',
+              color: currentTheme.text.muted,
               marginBottom: '8px',
               textTransform: 'uppercase'
             }}>
@@ -1447,7 +1865,7 @@ const DubaiAIDashboard = () => {
             <div style={{
               fontSize: '36px',
               fontWeight: '800',
-              color: '#f1f5f9',
+              color: currentTheme.text.primary,
               marginBottom: '12px'
             }}>
               {currentJourney?.name}
@@ -1474,10 +1892,10 @@ const DubaiAIDashboard = () => {
                   autoFocus={!currentJourney?.notes && showJourneyNotesInput}
                   style={{
                     padding: '10px 16px',
-                    background: 'rgba(245, 158, 11, 0.1)',
-                    border: '1px solid rgba(245, 158, 11, 0.3)',
+                    background: currentTheme.bg.journeyNote,
+                    border: `1px solid ${currentTheme.border.journeyNote}`,
                     borderRadius: '8px',
-                    color: '#fbbf24',
+                    color: currentTheme.text.journeyNote,
                     fontSize: '14px',
                     fontFamily: 'inherit',
                     width: '100%',
@@ -1490,10 +1908,10 @@ const DubaiAIDashboard = () => {
                   onClick={() => setShowJourneyNotesInput(true)}
                   style={{
                     padding: '10px 16px',
-                    background: 'rgba(245, 158, 11, 0.1)',
-                    border: '1px solid rgba(245, 158, 11, 0.3)',
+                    background: currentTheme.bg.journeyNote,
+                    border: `1px solid ${currentTheme.border.journeyNote}`,
                     borderRadius: '8px',
-                    color: '#fbbf24',
+                    color: currentTheme.text.journeyNote,
                     fontSize: '14px',
                     fontFamily: 'inherit',
                     cursor: 'pointer',
@@ -1503,12 +1921,12 @@ const DubaiAIDashboard = () => {
                     transition: 'all 0.2s'
                   }}
                   onMouseEnter={(e) => {
-                    e.currentTarget.style.background = 'rgba(245, 158, 11, 0.2)';
-                    e.currentTarget.style.borderColor = 'rgba(245, 158, 11, 0.5)';
+                    e.currentTarget.style.background = theme === 'dark' ? 'rgba(245, 158, 11, 0.2)' : 'rgba(245, 158, 11, 0.15)';
+                    e.currentTarget.style.borderColor = theme === 'dark' ? 'rgba(245, 158, 11, 0.5)' : 'rgba(245, 158, 11, 0.6)';
                   }}
                   onMouseLeave={(e) => {
-                    e.currentTarget.style.background = 'rgba(245, 158, 11, 0.1)';
-                    e.currentTarget.style.borderColor = 'rgba(245, 158, 11, 0.3)';
+                    e.currentTarget.style.background = currentTheme.bg.journeyNote;
+                    e.currentTarget.style.borderColor = currentTheme.border.journeyNote;
                   }}
                 >
                   <Plus size={14} />
@@ -1521,10 +1939,10 @@ const DubaiAIDashboard = () => {
                 <div style={{
                   display: 'inline-block',
                   padding: '10px 16px',
-                  background: 'rgba(245, 158, 11, 0.1)',
-                  border: '1px solid rgba(245, 158, 11, 0.3)',
+                  background: currentTheme.bg.journeyNote,
+                  border: `1px solid ${currentTheme.border.journeyNote}`,
                   borderRadius: '8px',
-                  color: '#fbbf24',
+                  color: currentTheme.text.journeyNote,
                   fontSize: '14px'
                 }}>
                   📌 {currentJourney.notes}
@@ -1532,7 +1950,35 @@ const DubaiAIDashboard = () => {
               )
             )}
           </div>
-          <button
+          <div style={{ display: 'flex', gap: '12px', alignItems: 'flex-start' }}>
+            {/* Theme Toggle Button */}
+            <button
+              onClick={toggleTheme}
+              style={{
+                padding: '10px',
+                background: currentTheme.bg.button,
+                border: `1px solid ${currentTheme.border.accent}`,
+                borderRadius: '8px',
+                color: theme === 'dark' ? '#fbbf24' : '#f59e0b',
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                transition: 'all 0.2s',
+                width: '44px',
+                height: '44px'
+              }}
+              title={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.background = currentTheme.bg.buttonHover;
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.background = currentTheme.bg.button;
+              }}
+            >
+              {theme === 'dark' ? <Sun size={20} /> : <Moon size={20} />}
+            </button>
+            <button
             onClick={async () => {
               if (editMode) {
                 // Save all changes when clicking Save
@@ -1573,12 +2019,13 @@ const DubaiAIDashboard = () => {
               <><Edit2 size={16} /> Edit Mode</>
             )}
           </button>
+          </div>
         </div>
 
         {/* Kanban Board */}
         <div style={{
-          background: 'rgba(30, 41, 59, 0.5)',
-          border: '1px solid rgba(148, 163, 184, 0.1)',
+          background: currentTheme.bg.card,
+          border: `1px solid ${currentTheme.border.default}`,
           borderRadius: '16px',
           padding: '32px',
           marginBottom: '32px'
@@ -1586,7 +2033,7 @@ const DubaiAIDashboard = () => {
           <div style={{
             fontSize: '20px',
             fontWeight: '700',
-            color: '#f1f5f9',
+            color: currentTheme.text.primary,
             marginBottom: '24px',
             display: 'flex',
             justifyContent: 'space-between',
@@ -1671,7 +2118,7 @@ const DubaiAIDashboard = () => {
                       <span style={{
                         fontSize: '14px',
                         fontWeight: '700',
-                        color: '#f1f5f9'
+                        color: currentTheme.text.primary
                       }}>
                         {column.label}
                       </span>
@@ -1726,7 +2173,7 @@ const DubaiAIDashboard = () => {
                           <div
                             key={stage.id || stageIndex}
                             style={{
-                              background: 'rgba(15, 23, 42, 0.8)',
+                              background: currentTheme.bg.stageCard,
                               border: `1px solid ${column.borderColor}`,
                               borderRadius: '10px',
                               padding: '16px',
@@ -1757,10 +2204,10 @@ const DubaiAIDashboard = () => {
                                 style={{
                                   width: '100%',
                                   padding: '8px 12px',
-                                  background: 'rgba(30, 41, 59, 0.6)',
-                                  border: '1px solid rgba(148, 163, 184, 0.2)',
+                                  background: currentTheme.bg.input,
+                                  border: `1px solid ${currentTheme.border.default}`,
                                   borderRadius: '6px',
-                                  color: '#e2e8f0',
+                                  color: currentTheme.text.secondary,
                                   fontSize: '15px',
                                   fontWeight: '600',
                                   fontFamily: 'inherit',
@@ -1771,7 +2218,7 @@ const DubaiAIDashboard = () => {
                               <div style={{
                                 fontSize: '15px',
                                 fontWeight: '700',
-                                color: '#f1f5f9',
+                                color: currentTheme.text.primary,
                                 marginBottom: '12px',
                                 lineHeight: '1.4'
                               }}>
@@ -1787,10 +2234,10 @@ const DubaiAIDashboard = () => {
                                 style={{
                                   width: '100%',
                                   padding: '8px 12px',
-                                  background: 'rgba(30, 41, 59, 0.6)',
-                                  border: '1px solid rgba(148, 163, 184, 0.2)',
+                                  background: currentTheme.bg.input,
+                                  border: `1px solid ${currentTheme.border.default}`,
                                   borderRadius: '6px',
-                                  color: '#e2e8f0',
+                                  color: currentTheme.text.secondary,
                                   fontSize: '13px',
                                   fontFamily: 'inherit',
                                   cursor: 'pointer',
@@ -1812,8 +2259,8 @@ const DubaiAIDashboard = () => {
                               marginBottom: '8px',
                               fontSize: '12px'
                             }}>
-                              <Calendar size={14} style={{ color: '#94a3b8', flexShrink: 0 }} />
-                              <span style={{ color: '#94a3b8', marginRight: '4px' }}>ETA:</span>
+                              <Calendar size={14} style={{ color: currentTheme.text.muted, flexShrink: 0 }} />
+                              <span style={{ color: currentTheme.text.muted, marginRight: '4px' }}>ETA:</span>
                               {editMode ? (
                                 <input
                                   type="date"
@@ -1822,16 +2269,16 @@ const DubaiAIDashboard = () => {
                                   style={{
                                     flex: 1,
                                     padding: '4px 8px',
-                                    background: 'rgba(30, 41, 59, 0.6)',
-                                    border: '1px solid rgba(148, 163, 184, 0.2)',
+                                    background: currentTheme.bg.input,
+                                    border: `1px solid ${currentTheme.border.default}`,
                                     borderRadius: '4px',
-                                    color: '#e2e8f0',
+                                    color: currentTheme.text.secondary,
                                     fontSize: '12px',
                                     fontFamily: 'inherit'
                                   }}
                                 />
                               ) : (
-                                <span style={{ color: '#cbd5e1' }}>
+                                <span style={{ color: currentTheme.text.tertiary }}>
                                   {stage.eta || 'Not set'}
                                 </span>
                               )}
@@ -1845,8 +2292,8 @@ const DubaiAIDashboard = () => {
                               marginBottom: '8px',
                               fontSize: '12px'
                             }}>
-                              <Calendar size={14} style={{ color: '#94a3b8', flexShrink: 0 }} />
-                              <span style={{ color: '#94a3b8', marginRight: '4px' }}>Actual:</span>
+                              <Calendar size={14} style={{ color: currentTheme.text.muted, flexShrink: 0 }} />
+                              <span style={{ color: currentTheme.text.muted, marginRight: '4px' }}>Actual:</span>
                               {editMode ? (
                                 <input
                                   type="date"
@@ -1855,16 +2302,16 @@ const DubaiAIDashboard = () => {
                                   style={{
                                     flex: 1,
                                     padding: '4px 8px',
-                                    background: 'rgba(30, 41, 59, 0.6)',
-                                    border: '1px solid rgba(148, 163, 184, 0.2)',
+                                    background: currentTheme.bg.input,
+                                    border: `1px solid ${currentTheme.border.default}`,
                                     borderRadius: '4px',
-                                    color: '#e2e8f0',
+                                    color: currentTheme.text.secondary,
                                     fontSize: '12px',
                                     fontFamily: 'inherit'
                                   }}
                                 />
                               ) : (
-                                <span style={{ color: '#cbd5e1' }}>
+                                <span style={{ color: currentTheme.text.tertiary }}>
                                   {stage.actual || 'Pending'}
                                 </span>
                               )}
@@ -1891,10 +2338,10 @@ const DubaiAIDashboard = () => {
                               <div style={{
                                 marginTop: '8px',
                                 padding: '8px',
-                                background: 'rgba(30, 41, 59, 0.4)',
+                                background: currentTheme.bg.notes,
                                 borderRadius: '6px',
                                 fontSize: '12px',
-                                color: '#cbd5e1',
+                                color: currentTheme.text.tertiary,
                                 wordWrap: 'break-word',
                                 whiteSpace: 'pre-wrap' // Preserve line breaks and wrap text
                               }}>
@@ -1906,10 +2353,10 @@ const DubaiAIDashboard = () => {
                                       width: '100%',
                                       minHeight: '60px',
                                       padding: '8px',
-                                      background: 'rgba(15, 23, 42, 0.6)',
-                                      border: '1px solid rgba(148, 163, 184, 0.2)',
+                                      background: currentTheme.bg.input,
+                                      border: `1px solid ${currentTheme.border.default}`,
                                       borderRadius: '4px',
-                                      color: '#e2e8f0',
+                                      color: currentTheme.text.secondary,
                                       fontSize: '12px',
                                       fontFamily: 'inherit',
                                       resize: 'vertical'
@@ -1932,10 +2379,10 @@ const DubaiAIDashboard = () => {
                                   width: '100%',
                                   minHeight: '60px',
                                   padding: '8px',
-                                  background: 'rgba(15, 23, 42, 0.6)',
-                                  border: '1px solid rgba(148, 163, 184, 0.2)',
+                                  background: currentTheme.bg.input,
+                                  border: `1px solid ${currentTheme.border.default}`,
                                   borderRadius: '4px',
-                                  color: '#e2e8f0',
+                                  color: currentTheme.text.secondary,
                                   fontSize: '12px',
                                   fontFamily: 'inherit',
                                   resize: 'vertical',
@@ -1982,8 +2429,8 @@ const DubaiAIDashboard = () => {
 
         {/* Dependencies Table */}
         <div style={{
-          background: 'rgba(30, 41, 59, 0.5)',
-          border: '1px solid rgba(148, 163, 184, 0.1)',
+          background: currentTheme.bg.card,
+          border: `1px solid ${currentTheme.border.default}`,
           borderRadius: '16px',
           padding: '32px',
           marginBottom: '32px'
@@ -1996,12 +2443,12 @@ const DubaiAIDashboard = () => {
             <div style={{
               fontSize: '20px',
               fontWeight: '700',
-              color: '#f1f5f9',
+              color: currentTheme.text.primary,
               display: 'flex',
               alignItems: 'center',
               gap: '12px'
             }}>
-              <Link size={20} color="#60a5fa" />
+              <Link size={20} color={currentTheme.status.inProgress} />
               Dependencies
             </div>
             {editMode && (
@@ -2034,10 +2481,10 @@ const DubaiAIDashboard = () => {
                     padding: '16px',
                     textAlign: 'left',
                     fontSize: '13px',
-                    color: '#94a3b8',
+                    color: currentTheme.text.muted,
                     textTransform: 'uppercase',
-                    background: 'rgba(15, 23, 42, 0.6)',
-                    borderBottom: '1px solid rgba(148, 163, 184, 0.1)'
+                    background: currentTheme.bg.tableHeader,
+                    borderBottom: `1px solid ${currentTheme.border.default}`
                   }}>
                     Item
                   </th>
@@ -2045,10 +2492,10 @@ const DubaiAIDashboard = () => {
                     padding: '16px',
                     textAlign: 'left',
                     fontSize: '13px',
-                    color: '#94a3b8',
+                    color: currentTheme.text.muted,
                     textTransform: 'uppercase',
-                    background: 'rgba(15, 23, 42, 0.6)',
-                    borderBottom: '1px solid rgba(148, 163, 184, 0.1)'
+                    background: currentTheme.bg.tableHeader,
+                    borderBottom: `1px solid ${currentTheme.border.default}`
                   }}>
                     Depends On
                   </th>
@@ -2056,10 +2503,10 @@ const DubaiAIDashboard = () => {
                     padding: '16px',
                     textAlign: 'left',
                     fontSize: '13px',
-                    color: '#94a3b8',
+                    color: currentTheme.text.muted,
                     textTransform: 'uppercase',
-                    background: 'rgba(15, 23, 42, 0.6)',
-                    borderBottom: '1px solid rgba(148, 163, 184, 0.1)'
+                    background: currentTheme.bg.tableHeader,
+                    borderBottom: `1px solid ${currentTheme.border.default}`
                   }}>
                     Status
                   </th>
@@ -2068,10 +2515,10 @@ const DubaiAIDashboard = () => {
                       padding: '16px',
                       textAlign: 'center',
                       fontSize: '13px',
-                      color: '#94a3b8',
+                      color: currentTheme.text.muted,
                       textTransform: 'uppercase',
-                      background: 'rgba(15, 23, 42, 0.6)',
-                      borderBottom: '1px solid rgba(148, 163, 184, 0.1)',
+                      background: currentTheme.bg.tableHeader,
+                      borderBottom: `1px solid ${currentTheme.border.default}`,
                       width: '80px'
                     }}>
                       Actions
@@ -2082,7 +2529,7 @@ const DubaiAIDashboard = () => {
               <tbody>
                 {currentJourney.dependencies.map((dep, index) => (
                   <tr key={index}>
-                    <td style={{ padding: '16px', fontSize: '14px', color: '#e2e8f0' }}>
+                    <td style={{ padding: '16px', fontSize: '14px', color: currentTheme.text.secondary }}>
                       {editMode ? (
                         <input
                           type="text"
@@ -2091,17 +2538,17 @@ const DubaiAIDashboard = () => {
                           style={{
                             width: '100%',
                             padding: '8px 12px',
-                            background: 'rgba(15, 23, 42, 0.8)',
-                            border: '1px solid rgba(148, 163, 184, 0.2)',
+                            background: currentTheme.bg.input,
+                            border: `1px solid ${currentTheme.border.default}`,
                             borderRadius: '6px',
-                            color: '#e2e8f0',
+                            color: currentTheme.text.secondary,
                             fontSize: '14px',
                             fontFamily: 'inherit'
                           }}
                         />
                       ) : dep.item}
                     </td>
-                    <td style={{ padding: '16px', fontSize: '14px', color: '#cbd5e1' }}>
+                    <td style={{ padding: '16px', fontSize: '14px', color: currentTheme.text.tertiary }}>
                       {editMode ? (
                         <input
                           type="text"
@@ -2110,10 +2557,10 @@ const DubaiAIDashboard = () => {
                           style={{
                             width: '100%',
                             padding: '8px 12px',
-                            background: 'rgba(15, 23, 42, 0.8)',
-                            border: '1px solid rgba(148, 163, 184, 0.2)',
+                            background: currentTheme.bg.input,
+                            border: `1px solid ${currentTheme.border.default}`,
                             borderRadius: '6px',
-                            color: '#e2e8f0',
+                            color: currentTheme.text.secondary,
                             fontSize: '14px',
                             fontFamily: 'inherit'
                           }}
@@ -2127,10 +2574,10 @@ const DubaiAIDashboard = () => {
                           onChange={(e) => updateDependencyLocal(index, 'status', e.target.value)}
                           style={{
                             padding: '8px 12px',
-                            background: 'rgba(15, 23, 42, 0.8)',
-                            border: '1px solid rgba(148, 163, 184, 0.2)',
+                            background: currentTheme.bg.input,
+                            border: `1px solid ${currentTheme.border.default}`,
                             borderRadius: '6px',
-                            color: '#e2e8f0',
+                            color: currentTheme.text.secondary,
                             fontSize: '13px',
                             fontFamily: 'inherit',
                             cursor: 'pointer'
@@ -2159,7 +2606,7 @@ const DubaiAIDashboard = () => {
                     {editMode && (
                       <td style={{ padding: '16px', textAlign: 'center' }}>
                         <button
-                          onClick={() => deleteDependency(index)}
+                          onClick={() => deleteDependencyLocal(index)}
                           style={{
                             padding: '8px',
                             background: 'rgba(239, 68, 68, 0.15)',
@@ -2192,96 +2639,33 @@ const DubaiAIDashboard = () => {
 
         {/* Overall Progress */}
         <div style={{
-          background: 'rgba(30, 41, 59, 0.5)',
-          border: '1px solid rgba(148, 163, 184, 0.1)',
+          background: currentTheme.bg.card,
+          border: `1px solid ${currentTheme.border.default}`,
           borderRadius: '16px',
           padding: '32px'
         }}>
-          <div style={{ fontSize: '18px', fontWeight: '700', color: '#f1f5f9', marginBottom: '16px' }}>
+          <div style={{ fontSize: '18px', fontWeight: '700', color: currentTheme.text.primary, marginBottom: '16px' }}>
             Overall Progress
           </div>
           <div style={{
             height: '12px',
-            background: 'rgba(15, 23, 42, 0.8)',
+            background: currentTheme.bg.progressBar,
             borderRadius: '6px',
             overflow: 'hidden',
-            border: '1px solid rgba(148, 163, 184, 0.1)'
+            border: `1px solid ${currentTheme.border.default}`
           }}>
             <div style={{
               height: '100%',
-              width: `${Math.round(
-                (currentJourney?.stages.filter(s => s.status === 'done').length / 
-                currentJourney?.stages.length) * 100
-              )}%`,
+              width: overallProgress + '%',
               background: 'linear-gradient(90deg, #10b981, #3b82f6)',
               borderRadius: '6px'
             }} />
           </div>
-          <div style={{ marginTop: '12px', fontSize: '14px', color: '#94a3b8' }}>
-            {currentJourney?.stages.filter(s => s.status === 'done').length} of {currentJourney?.stages.length} stages completed
+          <div style={{ marginTop: '12px', fontSize: '14px', color: currentTheme.text.muted }}>
+            {(currentJourney?.stages?.filter(s => s.status === 'done').length || 0)} of {(currentJourney?.stages?.length || 0)} stages completed
           </div>
         </div>
       </div>
-
-      <style>
-        {`
-          * {
-            scrollbar-width: thin;
-            scrollbar-color: rgba(148, 163, 184, 0.3) transparent;
-          }
-          *::-webkit-scrollbar {
-            width: 8px;
-            height: 8px;
-          }
-          *::-webkit-scrollbar-thumb {
-            background: rgba(148, 163, 184, 0.3);
-            border-radius: 4px;
-          }
-          .kanban-column-scroll {
-            scrollbar-width: thin;
-            scrollbar-color: rgba(148, 163, 184, 0.4) transparent;
-          }
-          .kanban-column-scroll::-webkit-scrollbar {
-            width: 6px;
-          }
-          .kanban-column-scroll::-webkit-scrollbar-thumb {
-            background: rgba(148, 163, 184, 0.4);
-            border-radius: 3px;
-          }
-          .kanban-column-scroll::-webkit-scrollbar-thumb:hover {
-            background: rgba(148, 163, 184, 0.6);
-          }
-          .kanban-grid {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-          }
-          @media (max-width: 1200px) {
-            .kanban-grid {
-              grid-template-columns: repeat(2, 1fr) !important;
-            }
-          }
-          @media (max-width: 768px) {
-            .kanban-grid {
-              grid-template-columns: 1fr !important;
-            }
-          }
-          input[type="date"]::-webkit-calendar-picker-indicator {
-            filter: invert(1);
-            cursor: pointer;
-          }
-          @keyframes spin {
-            from {
-              transform: rotate(0deg);
-            }
-            to {
-              transform: rotate(360deg);
-            }
-          }
-          .animate-spin {
-            animation: spin 1s linear infinite;
-          }
-        `}
-      </style>
     </div>
   );
 };

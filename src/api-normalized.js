@@ -209,6 +209,42 @@ export const updateDependency = async (dependencyId, updates) => {
 };
 
 /**
+ * Create a new dependency
+ */
+export const createDependency = async (journeyId, dependencyData) => {
+  if (!supabase) throw new Error('Supabase not initialized');
+
+  const { data, error } = await supabase
+    .from('dependencies')
+    .insert({
+      journey_id: journeyId,
+      item: dependencyData.item,
+      depends_on: dependencyData.dependsOn || dependencyData.depends_on,
+      status: dependencyData.status || 'critical'
+    })
+    .select()
+    .single();
+
+  if (error) throw error;
+  return data;
+};
+
+/**
+ * Delete a dependency
+ */
+export const deleteDependency = async (dependencyId) => {
+  if (!supabase) throw new Error('Supabase not initialized');
+
+  const { error } = await supabase
+    .from('dependencies')
+    .delete()
+    .eq('id', dependencyId);
+
+  if (error) throw error;
+  return { success: true };
+};
+
+/**
  * Create a new stage
  */
 export const createStage = async (journeyId, stageData) => {
@@ -281,6 +317,100 @@ export const deleteJourney = async (journeyId) => {
 
   if (error) throw error;
   return { success: true };
+};
+
+/**
+ * Create a new category
+ */
+export const createCategory = async (categoryName, displayOrder = 0) => {
+  if (!supabase) throw new Error('Supabase not initialized');
+
+  const { data, error } = await supabase
+    .from('categories')
+    .insert({
+      name: categoryName,
+      display_order: displayOrder
+    })
+    .select()
+    .single();
+
+  if (error) throw error;
+  return data;
+};
+
+/**
+ * Delete a category (cascades to journeys, stages, and dependencies)
+ */
+export const deleteCategory = async (categoryId) => {
+  if (!supabase) throw new Error('Supabase not initialized');
+
+  const { error } = await supabase
+    .from('categories')
+    .delete()
+    .eq('id', categoryId);
+
+  if (error) throw error;
+  return { success: true };
+};
+
+/**
+ * Get category by name
+ */
+export const getCategoryByName = async (categoryName) => {
+  if (!supabase) throw new Error('Supabase not initialized');
+
+  const { data, error } = await supabase
+    .from('categories')
+    .select('*')
+    .eq('name', categoryName)
+    .single();
+
+  if (error && error.code !== 'PGRST116') throw error;
+  return data;
+};
+
+/**
+ * Update a category
+ */
+export const updateCategory = async (categoryId, updates) => {
+  if (!supabase) throw new Error('Supabase not initialized');
+
+  const updateData = {
+    ...updates,
+    updated_at: new Date().toISOString()
+  };
+
+  const { data, error } = await supabase
+    .from('categories')
+    .update(updateData)
+    .eq('id', categoryId)
+    .select()
+    .single();
+
+  if (error) throw error;
+  return data;
+};
+
+/**
+ * Update a journey (name, notes, etc.)
+ */
+export const updateJourney = async (journeyId, updates) => {
+  if (!supabase) throw new Error('Supabase not initialized');
+
+  const updateData = {
+    ...updates,
+    updated_at: new Date().toISOString()
+  };
+
+  const { data, error } = await supabase
+    .from('journeys')
+    .update(updateData)
+    .eq('id', journeyId)
+    .select()
+    .single();
+
+  if (error) throw error;
+  return data;
 };
 
 // Keep user preferences functions (already normalized)
