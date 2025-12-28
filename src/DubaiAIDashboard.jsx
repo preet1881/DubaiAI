@@ -519,6 +519,54 @@ const DubaiAIDashboard = () => {
     return <Calendar size={16} />;
   };
 
+  // Kanban column configuration
+  const kanbanColumns = [
+    { 
+      status: 'not-started', 
+      label: 'Not Started', 
+      color: '#6b7280',
+      bgColor: 'rgba(107, 114, 128, 0.1)',
+      borderColor: 'rgba(107, 114, 128, 0.3)'
+    },
+    { 
+      status: 'active', 
+      label: 'Active', 
+      color: '#3b82f6',
+      bgColor: 'rgba(59, 130, 246, 0.1)',
+      borderColor: 'rgba(59, 130, 246, 0.3)'
+    },
+    { 
+      status: 'critical', 
+      label: 'Critical', 
+      color: '#ef4444',
+      bgColor: 'rgba(239, 68, 68, 0.1)',
+      borderColor: 'rgba(239, 68, 68, 0.3)'
+    },
+    { 
+      status: 'done', 
+      label: 'Done', 
+      color: '#10b981',
+      bgColor: 'rgba(16, 185, 129, 0.1)',
+      borderColor: 'rgba(16, 185, 129, 0.3)'
+    }
+  ];
+
+  // Map status to column (handle pending/blocked)
+  const getColumnForStatus = (status) => {
+    if (status === 'pending') return 'not-started';
+    if (status === 'blocked') return 'critical';
+    return status;
+  };
+
+  // Group stages by status for Kanban
+  const getStagesByStatus = (status) => {
+    if (!currentJourney?.stages) return [];
+    return currentJourney.stages
+      .map((stage, index) => ({ ...stage, originalIndex: index }))
+      .filter(stage => getColumnForStatus(stage.status) === status)
+      .sort((a, b) => (a.display_order || 0) - (b.display_order || 0));
+  };
+
   const currentJourney = useMemo(() => {
     try {
       const category = journeyData[selectedCategory];
@@ -1430,7 +1478,7 @@ const DubaiAIDashboard = () => {
           </button>
         </div>
 
-        {/* Gantt Chart */}
+        {/* Kanban Board */}
         <div style={{
           background: 'rgba(30, 41, 59, 0.5)',
           border: '1px solid rgba(148, 163, 184, 0.1)',
@@ -1442,207 +1490,385 @@ const DubaiAIDashboard = () => {
             fontSize: '20px',
             fontWeight: '700',
             color: '#f1f5f9',
-            marginBottom: '24px'
+            marginBottom: '24px',
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center'
           }}>
-            Progress Timeline
-          </div>
-
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-            {currentJourney?.stages.map((stage, index) => (
-              <div key={index}>
-                <div style={{
+            <span>Progress Timeline</span>
+            {editMode && (
+              <button
+                onClick={addStage}
+                style={{
+                  padding: '10px 18px',
+                  background: 'rgba(59, 130, 246, 0.15)',
+                  border: '1px solid rgba(59, 130, 246, 0.3)',
+                  borderRadius: '8px',
+                  color: '#60a5fa',
+                  fontSize: '13px',
+                  fontWeight: '700',
+                  cursor: 'pointer',
                   display: 'flex',
                   alignItems: 'center',
-                  gap: '16px',
-                  marginBottom: '8px'
-                }}>
-                  <div style={{ color: getStatusColor(stage.status), display: 'flex' }}>
-                    {getStatusIcon(stage.status)}
-                  </div>
-                  
-                  {editMode ? (
-                    <>
-                      <input
-                        type="text"
-                        value={stage.name}
-                        onChange={(e) => updateStageLocal(index, 'name', e.target.value)}
-                        style={{
-                          minWidth: '200px',
-                          padding: '8px 12px',
-                          background: 'rgba(15, 23, 42, 0.8)',
-                          border: '1px solid rgba(148, 163, 184, 0.2)',
-                          borderRadius: '6px',
-                          color: '#e2e8f0',
-                          fontSize: '15px',
-                          fontFamily: 'inherit'
-                        }}
-                      />
-                      <select
-                        value={stage.status}
-                        onChange={(e) => updateStageLocal(index, 'status', e.target.value)}
-                        style={{
-                          padding: '8px 12px',
-                          background: 'rgba(15, 23, 42, 0.8)',
-                          border: '1px solid rgba(148, 163, 184, 0.2)',
-                          borderRadius: '6px',
-                          color: '#e2e8f0',
-                          fontSize: '13px',
-                          fontFamily: 'inherit',
-                          cursor: 'pointer'
-                        }}
-                      >
-                        <option value="done">Done</option>
-                        <option value="active">Active</option>
-                        <option value="critical">Critical</option>
-                        <option value="pending">Pending</option>
-                        <option value="not-started">Not Started</option>
-                      </select>
-                      <input
-                        type="number"
-                        value={stage.progress}
-                        onChange={(e) => updateStageLocal(index, 'progress', Math.min(100, Math.max(0, parseInt(e.target.value) || 0)))}
-                        style={{
-                          width: '80px',
-                          padding: '8px 12px',
-                          background: 'rgba(15, 23, 42, 0.8)',
-                          border: '1px solid rgba(148, 163, 184, 0.2)',
-                          borderRadius: '6px',
-                          color: '#e2e8f0',
-                          fontSize: '13px',
-                          fontFamily: 'inherit'
-                        }}
-                      />
-                    </>
-                  ) : (
-                    <div style={{ minWidth: '200px', fontSize: '15px', fontWeight: '600', color: '#e2e8f0' }}>
-                      {stage.name}
-                    </div>
-                  )}
-
-                  <div style={{
-                    flex: 1,
-                    height: '32px',
-                    background: 'rgba(15, 23, 42, 0.8)',
-                    borderRadius: '8px',
-                    overflow: 'hidden',
-                    position: 'relative',
-                    border: '1px solid rgba(148, 163, 184, 0.1)'
-                  }}>
-                    <div style={{
-                      height: '100%',
-                      width: `${stage.progress}%`,
-                      background: getStatusColor(stage.status),
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'flex-end',
-                      paddingRight: '12px'
-                    }}>
-                      {stage.progress > 15 && (
-                        <span style={{ fontSize: '12px', fontWeight: '700', color: '#fff' }}>
-                          {stage.progress}%
-                        </span>
-                      )}
-                    </div>
-                  </div>
-
-                  {editMode && (
-                    <button
-                      onClick={() => deleteStage(index)}
-                      style={{
-                        padding: '8px',
-                        background: 'rgba(239, 68, 68, 0.15)',
-                        border: '1px solid rgba(239, 68, 68, 0.3)',
-                        borderRadius: '6px',
-                        color: '#ef4444',
-                        cursor: 'pointer',
-                        display: 'flex'
-                      }}
-                    >
-                      <Trash2 size={16} />
-                    </button>
-                  )}
-                </div>
-
-                {/* ETA and Actual */}
-                <div style={{ display: 'flex', gap: '16px', marginLeft: '32px', marginTop: '8px', minHeight: '32px' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', minWidth: '180px' }}>
-                    <span style={{ fontSize: '12px', color: '#94a3b8', whiteSpace: 'nowrap' }}>ETA:</span>
-                    {editMode ? (
-                      <input
-                        type="date"
-                        value={stage.eta || ''}
-                        onChange={(e) => updateStageLocal(index, 'eta', e.target.value || '')}
-                        style={{
-                          padding: '6px 10px',
-                          background: 'rgba(15, 23, 42, 0.8)',
-                          border: '1px solid rgba(148, 163, 184, 0.2)',
-                          borderRadius: '6px',
-                          color: '#e2e8f0',
-                          fontSize: '12px',
-                          fontFamily: 'inherit',
-                          minWidth: '150px',
-                          width: '150px',
-                          flexShrink: 0
-                        }}
-                      />
-                    ) : (
-                      <span style={{ fontSize: '13px', color: '#cbd5e1', minWidth: '150px' }}>
-                        {stage.eta || 'Not set'}
-                      </span>
-                    )}
-                  </div>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', minWidth: '180px' }}>
-                    <span style={{ fontSize: '12px', color: '#94a3b8', whiteSpace: 'nowrap' }}>Actual:</span>
-                    {editMode ? (
-                      <input
-                        type="date"
-                        value={stage.actual || ''}
-                        onChange={(e) => updateStageLocal(index, 'actual', e.target.value || '')}
-                        style={{
-                          padding: '6px 10px',
-                          background: 'rgba(15, 23, 42, 0.8)',
-                          border: '1px solid rgba(148, 163, 184, 0.2)',
-                          borderRadius: '6px',
-                          color: '#e2e8f0',
-                          fontSize: '12px',
-                          fontFamily: 'inherit',
-                          minWidth: '150px',
-                          width: '150px',
-                          flexShrink: 0
-                        }}
-                      />
-                    ) : (
-                      <span style={{ fontSize: '13px', color: '#cbd5e1', minWidth: '150px' }}>
-                        {stage.actual || 'Pending'}
-                      </span>
-                    )}
-                  </div>
-                </div>
-              </div>
-            ))}
+                  gap: '8px'
+                }}
+              >
+                <Plus size={16} /> Add Stage
+              </button>
+            )}
           </div>
 
-          {editMode && (
-            <button
-              onClick={addStage}
-              style={{
-                marginTop: '16px',
-                padding: '12px 20px',
-                background: 'rgba(59, 130, 246, 0.15)',
-                border: '1px solid rgba(59, 130, 246, 0.3)',
-                borderRadius: '8px',
-                color: '#60a5fa',
-                fontSize: '14px',
-                fontWeight: '700',
-                cursor: 'pointer',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '8px'
-              }}
-            >
-              <Plus size={16} /> Add Stage
-            </button>
-          )}
+          {/* Kanban Columns */}
+          <div style={{
+            display: 'flex',
+            gap: '16px',
+            overflowX: 'auto',
+            paddingBottom: '8px'
+          }}>
+            {kanbanColumns.map((column) => {
+              const columnStages = getStagesByStatus(column.status);
+              const stageCount = columnStages.length;
+
+              return (
+                <div
+                  key={column.status}
+                  style={{
+                    flex: '1',
+                    minWidth: '280px',
+                    background: column.bgColor,
+                    border: `1px solid ${column.borderColor}`,
+                    borderRadius: '12px',
+                    padding: '16px',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: '12px'
+                  }}
+                >
+                  {/* Column Header */}
+                  <div style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    marginBottom: '8px',
+                    paddingBottom: '12px',
+                    borderBottom: `2px solid ${column.borderColor}`
+                  }}>
+                    <div style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '8px'
+                    }}>
+                      <div style={{ color: column.color, display: 'flex' }}>
+                        {getStatusIcon(column.status)}
+                      </div>
+                      <span style={{
+                        fontSize: '14px',
+                        fontWeight: '700',
+                        color: '#f1f5f9'
+                      }}>
+                        {column.label}
+                      </span>
+                    </div>
+                    <div style={{
+                      background: column.color,
+                      color: '#fff',
+                      borderRadius: '12px',
+                      padding: '4px 10px',
+                      fontSize: '12px',
+                      fontWeight: '700',
+                      minWidth: '24px',
+                      textAlign: 'center'
+                    }}>
+                      {stageCount}
+                    </div>
+                  </div>
+
+                  {/* Stage Cards */}
+                  <div style={{
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: '12px',
+                    minHeight: '100px'
+                  }}>
+                    {columnStages.length === 0 ? (
+                      <div style={{
+                        padding: '24px',
+                        textAlign: 'center',
+                        color: '#94a3b8',
+                        fontSize: '13px',
+                        fontStyle: 'italic'
+                      }}>
+                        No stages
+                      </div>
+                    ) : (
+                      columnStages.map((stage) => {
+                        const stageIndex = stage.originalIndex;
+                        const stageDependencies = currentJourney?.dependencies?.filter(
+                          dep => dep.item === stage.name
+                        ) || [];
+
+                        return (
+                          <div
+                            key={stage.id || stageIndex}
+                            style={{
+                              background: 'rgba(15, 23, 42, 0.8)',
+                              border: `1px solid ${column.borderColor}`,
+                              borderRadius: '10px',
+                              padding: '16px',
+                              cursor: editMode ? 'default' : 'pointer',
+                              transition: 'all 0.2s'
+                            }}
+                            onMouseEnter={(e) => {
+                              if (!editMode) {
+                                e.currentTarget.style.borderColor = column.color;
+                                e.currentTarget.style.transform = 'translateY(-2px)';
+                                e.currentTarget.style.boxShadow = `0 4px 12px ${column.color}40`;
+                              }
+                            }}
+                            onMouseLeave={(e) => {
+                              if (!editMode) {
+                                e.currentTarget.style.borderColor = column.borderColor;
+                                e.currentTarget.style.transform = 'translateY(0)';
+                                e.currentTarget.style.boxShadow = 'none';
+                              }
+                            }}
+                          >
+                            {/* Stage Name */}
+                            {editMode ? (
+                              <input
+                                type="text"
+                                value={stage.name}
+                                onChange={(e) => updateStageLocal(stageIndex, 'name', e.target.value)}
+                                style={{
+                                  width: '100%',
+                                  padding: '8px 12px',
+                                  background: 'rgba(30, 41, 59, 0.6)',
+                                  border: '1px solid rgba(148, 163, 184, 0.2)',
+                                  borderRadius: '6px',
+                                  color: '#e2e8f0',
+                                  fontSize: '15px',
+                                  fontWeight: '600',
+                                  fontFamily: 'inherit',
+                                  marginBottom: '12px'
+                                }}
+                              />
+                            ) : (
+                              <div style={{
+                                fontSize: '15px',
+                                fontWeight: '700',
+                                color: '#f1f5f9',
+                                marginBottom: '12px',
+                                lineHeight: '1.4'
+                              }}>
+                                {stage.name}
+                              </div>
+                            )}
+
+                            {/* Status Selector (Edit Mode) */}
+                            {editMode && (
+                              <select
+                                value={stage.status}
+                                onChange={(e) => updateStageLocal(stageIndex, 'status', e.target.value)}
+                                style={{
+                                  width: '100%',
+                                  padding: '8px 12px',
+                                  background: 'rgba(30, 41, 59, 0.6)',
+                                  border: '1px solid rgba(148, 163, 184, 0.2)',
+                                  borderRadius: '6px',
+                                  color: '#e2e8f0',
+                                  fontSize: '13px',
+                                  fontFamily: 'inherit',
+                                  cursor: 'pointer',
+                                  marginBottom: '12px'
+                                }}
+                              >
+                                <option value="not-started">Not Started</option>
+                                <option value="active">Active</option>
+                                <option value="critical">Critical</option>
+                                <option value="done">Done</option>
+                                <option value="pending">Pending</option>
+                                <option value="blocked">Blocked</option>
+                              </select>
+                            )}
+
+                            {/* ETA */}
+                            <div style={{
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: '8px',
+                              marginBottom: '8px',
+                              fontSize: '12px'
+                            }}>
+                              <Calendar size={14} style={{ color: '#94a3b8', flexShrink: 0 }} />
+                              <span style={{ color: '#94a3b8', marginRight: '4px' }}>ETA:</span>
+                              {editMode ? (
+                                <input
+                                  type="date"
+                                  value={stage.eta || ''}
+                                  onChange={(e) => updateStageLocal(stageIndex, 'eta', e.target.value || '')}
+                                  style={{
+                                    flex: 1,
+                                    padding: '4px 8px',
+                                    background: 'rgba(30, 41, 59, 0.6)',
+                                    border: '1px solid rgba(148, 163, 184, 0.2)',
+                                    borderRadius: '4px',
+                                    color: '#e2e8f0',
+                                    fontSize: '12px',
+                                    fontFamily: 'inherit'
+                                  }}
+                                />
+                              ) : (
+                                <span style={{ color: '#cbd5e1' }}>
+                                  {stage.eta || 'Not set'}
+                                </span>
+                              )}
+                            </div>
+
+                            {/* Actual */}
+                            <div style={{
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: '8px',
+                              marginBottom: '8px',
+                              fontSize: '12px'
+                            }}>
+                              <Calendar size={14} style={{ color: '#94a3b8', flexShrink: 0 }} />
+                              <span style={{ color: '#94a3b8', marginRight: '4px' }}>Actual:</span>
+                              {editMode ? (
+                                <input
+                                  type="date"
+                                  value={stage.actual || ''}
+                                  onChange={(e) => updateStageLocal(stageIndex, 'actual', e.target.value || '')}
+                                  style={{
+                                    flex: 1,
+                                    padding: '4px 8px',
+                                    background: 'rgba(30, 41, 59, 0.6)',
+                                    border: '1px solid rgba(148, 163, 184, 0.2)',
+                                    borderRadius: '4px',
+                                    color: '#e2e8f0',
+                                    fontSize: '12px',
+                                    fontFamily: 'inherit'
+                                  }}
+                                />
+                              ) : (
+                                <span style={{ color: '#cbd5e1' }}>
+                                  {stage.actual || 'Pending'}
+                                </span>
+                              )}
+                            </div>
+
+                            {/* Dependencies */}
+                            {stageDependencies.length > 0 && (
+                              <div style={{
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: '6px',
+                                marginBottom: '8px',
+                                fontSize: '12px'
+                              }}>
+                                <Link size={14} style={{ color: '#8b5cf6', flexShrink: 0 }} />
+                                <span style={{ color: '#8b5cf6' }}>
+                                  {stageDependencies.length} dep{stageDependencies.length > 1 ? 's' : ''}
+                                </span>
+                              </div>
+                            )}
+
+                            {/* Notes Preview */}
+                            {stage.notes && (
+                              <div style={{
+                                marginTop: '8px',
+                                padding: '8px',
+                                background: 'rgba(30, 41, 59, 0.4)',
+                                borderRadius: '6px',
+                                fontSize: '12px',
+                                color: '#cbd5e1',
+                                maxHeight: '60px',
+                                overflow: 'hidden',
+                                textOverflow: 'ellipsis',
+                                display: '-webkit-box',
+                                WebkitLineClamp: 2,
+                                WebkitBoxOrient: 'vertical'
+                              }}>
+                                {editMode ? (
+                                  <textarea
+                                    value={stage.notes}
+                                    onChange={(e) => updateStageLocal(stageIndex, 'notes', e.target.value)}
+                                    style={{
+                                      width: '100%',
+                                      minHeight: '60px',
+                                      padding: '8px',
+                                      background: 'rgba(15, 23, 42, 0.6)',
+                                      border: '1px solid rgba(148, 163, 184, 0.2)',
+                                      borderRadius: '4px',
+                                      color: '#e2e8f0',
+                                      fontSize: '12px',
+                                      fontFamily: 'inherit',
+                                      resize: 'vertical'
+                                    }}
+                                    placeholder="Add notes..."
+                                  />
+                                ) : (
+                                  <span>{stage.notes}</span>
+                                )}
+                              </div>
+                            )}
+
+                            {/* Notes Input (if no notes in edit mode) */}
+                            {editMode && !stage.notes && (
+                              <textarea
+                                value={stage.notes || ''}
+                                onChange={(e) => updateStageLocal(stageIndex, 'notes', e.target.value)}
+                                placeholder="Add notes..."
+                                style={{
+                                  width: '100%',
+                                  minHeight: '60px',
+                                  padding: '8px',
+                                  background: 'rgba(15, 23, 42, 0.6)',
+                                  border: '1px solid rgba(148, 163, 184, 0.2)',
+                                  borderRadius: '4px',
+                                  color: '#e2e8f0',
+                                  fontSize: '12px',
+                                  fontFamily: 'inherit',
+                                  resize: 'vertical',
+                                  marginTop: '8px'
+                                }}
+                              />
+                            )}
+
+                            {/* Delete Button (Edit Mode) */}
+                            {editMode && (
+                              <button
+                                onClick={() => deleteStage(stageIndex)}
+                                style={{
+                                  marginTop: '8px',
+                                  padding: '6px 12px',
+                                  background: 'rgba(239, 68, 68, 0.15)',
+                                  border: '1px solid rgba(239, 68, 68, 0.3)',
+                                  borderRadius: '6px',
+                                  color: '#ef4444',
+                                  cursor: 'pointer',
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  justifyContent: 'center',
+                                  gap: '6px',
+                                  fontSize: '12px',
+                                  fontWeight: '600',
+                                  width: '100%'
+                                }}
+                              >
+                                <Trash2 size={14} />
+                                Delete
+                              </button>
+                            )}
+                          </div>
+                        );
+                      })
+                    )}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
         </div>
 
         {/* Dependencies Table */}
