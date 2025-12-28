@@ -76,33 +76,55 @@ The production build will be in the `dist` directory.
 - Click the **"Add Journey"** button at the bottom of the journey list
 - Enter the journey name and press Enter or click Add
 
-### Cloud Storage API Setup
+### Cloud Storage Setup
 
-The dashboard uses a cloud storage API to persist all data. You need to set up a backend API server.
+The dashboard supports two backend options:
 
-#### 1. Configure API URL
+#### Option 1: Supabase (Recommended) ⭐
 
-Create a `.env` file in the root directory:
+**Quick Setup:**
 
-```bash
-VITE_API_BASE_URL=http://localhost:3001/api
-```
+1. **Create a Supabase project** at [supabase.com](https://supabase.com)
 
-Or set it to your production API URL:
-```bash
-VITE_API_BASE_URL=https://api.yourdomain.com/api
-```
+2. **Get your credentials:**
+   - Go to Settings → API
+   - Copy your Project URL and anon key
 
-#### 2. Backend API Requirements
+3. **Create database tables:**
+   - Go to SQL Editor in Supabase
+   - Run the SQL from `SUPABASE_SETUP.md`
 
-Your backend needs to implement these endpoints:
+4. **Install Supabase client:**
+   ```bash
+   npm install
+   ```
 
-- **GET** `/api/dashboard` - Fetch dashboard data
-- **PUT** `/api/dashboard` - Save dashboard data
-- **GET** `/api/preferences` - Fetch user preferences
-- **PUT** `/api/preferences` - Save user preferences
+5. **Configure environment:**
+   Create a `.env` file:
+   ```bash
+   VITE_SUPABASE_URL=https://your-project-id.supabase.co
+   VITE_SUPABASE_ANON_KEY=your-anon-key-here
+   ```
 
-See `API_DOCUMENTATION.md` for detailed API specifications and example implementations.
+See `SUPABASE_SETUP.md` for detailed instructions.
+
+#### Option 2: Custom REST API
+
+1. **Set up your backend API** (see `backend-example/` for a Node.js example)
+
+2. **Configure API URL:**
+   Create a `.env` file:
+   ```bash
+   VITE_API_BASE_URL=http://localhost:3001/api
+   ```
+
+3. **Implement these endpoints:**
+   - **GET** `/api/dashboard` - Fetch dashboard data
+   - **PUT** `/api/dashboard` - Save dashboard data
+   - **GET** `/api/preferences` - Fetch user preferences
+   - **PUT** `/api/preferences` - Save user preferences
+
+See `API_DOCUMENTATION.md` for detailed API specifications.
 
 #### 3. Data Persistence
 
