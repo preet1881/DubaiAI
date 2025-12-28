@@ -11,7 +11,8 @@ A comprehensive resource tracking dashboard for Dubai AI projects. This dashboar
 - 🔗 **Dependencies**: Manage and track project dependencies
 - ✏️ **Edit Mode**: Full editing capabilities for categories, journeys, stages, and dependencies
 - 📝 **Notes**: Add and edit notes for each journey
-- 💾 **Auto-Save**: All edits are automatically saved to browser's localStorage
+- ☁️ **Cloud Storage**: All edits are automatically saved to cloud storage via API
+- 💾 **Auto-Save**: Debounced auto-save prevents excessive API calls
 - 🎨 **Modern UI**: Beautiful dark theme with gradient backgrounds
 
 ## Getting Started
@@ -75,16 +76,43 @@ The production build will be in the `dist` directory.
 - Click the **"Add Journey"** button at the bottom of the journey list
 - Enter the journey name and press Enter or click Add
 
-### Data Persistence
+### Cloud Storage API Setup
 
-All your edits are **automatically saved** to your browser's localStorage. This means:
-- ✅ Your changes persist across page refreshes
-- ✅ Your data is saved locally in your browser
-- ✅ No need to manually save - everything is auto-saved
-- ⚠️ Data is stored per browser/device (not synced across devices)
-- ⚠️ Clearing browser data will remove saved changes
+The dashboard uses a cloud storage API to persist all data. You need to set up a backend API server.
 
-To reset to default data, you can clear your browser's localStorage for this site.
+#### 1. Configure API URL
+
+Create a `.env` file in the root directory:
+
+```bash
+VITE_API_BASE_URL=http://localhost:3001/api
+```
+
+Or set it to your production API URL:
+```bash
+VITE_API_BASE_URL=https://api.yourdomain.com/api
+```
+
+#### 2. Backend API Requirements
+
+Your backend needs to implement these endpoints:
+
+- **GET** `/api/dashboard` - Fetch dashboard data
+- **PUT** `/api/dashboard` - Save dashboard data
+- **GET** `/api/preferences` - Fetch user preferences
+- **PUT** `/api/preferences` - Save user preferences
+
+See `API_DOCUMENTATION.md` for detailed API specifications and example implementations.
+
+#### 3. Data Persistence
+
+- ✅ All edits are **automatically saved** to cloud storage via API
+- ✅ Data persists across page refreshes and devices
+- ✅ Debounced saves (500ms) prevent excessive API calls
+- ✅ Loading states show when fetching/saving data
+- ✅ Error handling with fallback to default data
+
+If the API is unavailable, the dashboard will use default data and show an error message.
 
 ## Project Structure
 
@@ -93,11 +121,14 @@ DubaiAI/
 ├── src/
 │   ├── DubaiAIDashboard.jsx  # Main dashboard component
 │   ├── App.jsx                # App wrapper
-│   └── index.js              # Entry point
-├── public/
-│   └── index.html            # HTML template
+│   ├── index.jsx              # Entry point
+│   └── api.js                 # API service for cloud storage
+├── public/                    # Static assets
+├── index.html                 # HTML template
 ├── package.json
 ├── vite.config.js
+├── .env.example              # Environment variables example
+├── API_DOCUMENTATION.md      # API endpoint documentation
 └── README.md
 ```
 

@@ -1,5 +1,6 @@
-import React, { useState, useMemo, useEffect } from 'react';
-import { Calendar, CheckCircle2, Clock, AlertCircle, ChevronRight, Edit2, Save, Plus, Trash2, Link, FolderPlus, FilePlus } from 'lucide-react';
+import React, { useState, useMemo, useEffect, useRef } from 'react';
+import { Calendar, CheckCircle2, Clock, AlertCircle, ChevronRight, Edit2, Save, Plus, Trash2, Link, FolderPlus, FilePlus, Loader2 } from 'lucide-react';
+import { fetchDashboardData, saveDashboardData, fetchUserPreferences, saveUserPreferences } from './api';
 
 const DubaiAIDashboard = () => {
   // Default/initial data with all journeys from CSV
@@ -195,36 +196,10 @@ const DubaiAIDashboard = () => {
     ]
   };
 
-  // Load data from localStorage or use default
-  const loadFromLocalStorage = () => {
-    try {
-      const saved = localStorage.getItem('dubaiAI-dashboard-data');
-      if (saved) {
-        return JSON.parse(saved);
-      }
-    } catch (error) {
-      console.error('Error loading from localStorage:', error);
-    }
-    return defaultJourneyData;
-  };
-
-  const loadSelectedFromLocalStorage = (key, defaultValue) => {
-    try {
-      const saved = localStorage.getItem(`dubaiAI-dashboard-${key}`);
-      return saved || defaultValue;
-    } catch (error) {
-      return defaultValue;
-    }
-  };
-
-  // Initialize state with localStorage data or defaults
-  const [journeyData, setJourneyData] = useState(loadFromLocalStorage);
-  const [selectedCategory, setSelectedCategory] = useState(() => 
-    loadSelectedFromLocalStorage('selectedCategory', 'City Service')
-  );
-  const [selectedJourney, setSelectedJourney] = useState(() => 
-    loadSelectedFromLocalStorage('selectedJourney', 'Property Sell (Sell/Buy)')
-  );
+  // State management
+  const [journeyData, setJourneyData] = useState(defaultJourneyData);
+  const [selectedCategory, setSelectedCategory] = useState('City Service');
+  const [selectedJourney, setSelectedJourney] = useState('Property Sell (Sell/Buy)');
   const [editMode, setEditMode] = useState(false);
   const [showAddCategory, setShowAddCategory] = useState(false);
   const [showAddJourney, setShowAddJourney] = useState(false);
@@ -232,32 +207,100 @@ const DubaiAIDashboard = () => {
   const [newJourneyName, setNewJourneyName] = useState('');
   const [editingJourneyName, setEditingJourneyName] = useState(null);
   const [tempJourneyName, setTempJourneyName] = useState('');
+  
+  // Loading and error states
+  const [isLoading, setIsLoading] = useState(true);
+  const [isSaving, setIsSaving] = useState(false);
+  const [error, setError] = useState(null);
+  
+  // Refs for debouncing API calls
+  const saveTimeoutRef = useRef(null);
+  const preferencesTimeoutRef = useRef(null);
 
-  // Save journeyData to localStorage whenever it changes
+  // Fetch data from API on component mount
   useEffect(() => {
-    try {
-      localStorage.setItem('dubaiAI-dashboard-data', JSON.stringify(journeyData));
-    } catch (error) {
-      console.error('Error saving to localStorage:', error);
-    }
-  }, [journeyData]);
+    const loadData = async () => {
+      setIsLoading(true);
+      setError(null);
+      try {
+        // Fetch dashboard data and preferences in parallel
+        const [dashboardData, preferences] = await Promise.all([
+          fetchDashboardData().catch(() => defaultJourneyData),
+          fetchUserPreferences().catch(() => ({ selectedCategory: 'City Service', selectedJourney: 'Property Sell (Sell/Buy)' }))
+        ]);
+        
+        if (dashboardData && Object.keys(dashboardData).length > 0) {
+          setJourneyData(dashboardData);
+        }
+        
+        if (preferences) {
+          if (preferences.selectedCategory) setSelectedCategory(preferences.selectedCategory);
+          if (preferences.selectedJourney) setSelectedJourney(preferences.selectedJourney);
+        }
+      } catch (err) {
+        console.error('Error loading data from API:', err);
+        setError('Failed to load data from cloud storage. Using default data.');
+        // Continue with default data
+      } finally {
+        setIsLoading(false);
+      }
+    };
 
-  // Save selected category and journey to localStorage
-  useEffect(() => {
-    try {
-      localStorage.setItem('dubaiAI-dashboard-selectedCategory', selectedCategory);
-    } catch (error) {
-      console.error('Error saving selectedCategory:', error);
-    }
-  }, [selectedCategory]);
+    loadData();
+  }, []);
 
+  // Debounced save to API when journeyData changes
   useEffect(() => {
-    try {
-      localStorage.setItem('dubaiAI-dashboard-selectedJourney', selectedJourney);
-    } catch (error) {
-      console.error('Error saving selectedJourney:', error);
+    // Skip save on initial load
+    if (isLoading) return;
+
+    // Clear existing timeout
+    if (saveTimeoutRef.current) {
+      clearTimeout(saveTimeoutRef.current);
     }
-  }, [selectedJourney]);
+
+    // Set new timeout to save after 500ms of no changes
+    saveTimeoutRef.current = setTimeout(async () => {
+      setIsSaving(true);
+      try {
+        await saveDashboardData(journeyData);
+      } catch (err) {
+        console.error('Error saving to API:', err);
+        setError('Failed to save to cloud storage. Please try again.');
+      } finally {
+        setIsSaving(false);
+      }
+    }, 500);
+
+    return () => {
+      if (saveTimeoutRef.current) {
+        clearTimeout(saveTimeoutRef.current);
+      }
+    };
+  }, [journeyData, isLoading]);
+
+  // Debounced save preferences to API
+  useEffect(() => {
+    if (isLoading) return;
+
+    if (preferencesTimeoutRef.current) {
+      clearTimeout(preferencesTimeoutRef.current);
+    }
+
+    preferencesTimeoutRef.current = setTimeout(async () => {
+      try {
+        await saveUserPreferences({ selectedCategory, selectedJourney });
+      } catch (err) {
+        console.error('Error saving preferences to API:', err);
+      }
+    }, 500);
+
+    return () => {
+      if (preferencesTimeoutRef.current) {
+        clearTimeout(preferencesTimeoutRef.current);
+      }
+    };
+  }, [selectedCategory, selectedJourney, isLoading]);
 
   // Template for new stages
   const getDefaultStages = () => [
@@ -462,14 +505,96 @@ const DubaiAIDashboard = () => {
     setSelectedJourney(remaining[0]?.name || '');
   };
 
+  // Show loading screen
+  if (isLoading) {
+    return (
+      <div style={{
+        minHeight: '100vh',
+        background: 'linear-gradient(135deg, #0f172a 0%, #1e293b 100%)',
+        fontFamily: 'system-ui, -apple-system, sans-serif',
+        color: '#e2e8f0',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        flexDirection: 'column',
+        gap: '20px'
+      }}>
+        <Loader2 size={48} className="animate-spin" style={{ color: '#60a5fa' }} />
+        <div style={{ fontSize: '18px', fontWeight: '600' }}>Loading dashboard from cloud storage...</div>
+      </div>
+    );
+  }
+
   return (
     <div style={{
       minHeight: '100vh',
       background: 'linear-gradient(135deg, #0f172a 0%, #1e293b 100%)',
       fontFamily: 'system-ui, -apple-system, sans-serif',
       color: '#e2e8f0',
-      display: 'flex'
+      display: 'flex',
+      position: 'relative'
     }}>
+      {/* Error Banner */}
+      {error && (
+        <div style={{
+          position: 'fixed',
+          top: '20px',
+          right: '20px',
+          background: 'rgba(239, 68, 68, 0.9)',
+          color: '#fff',
+          padding: '12px 20px',
+          borderRadius: '8px',
+          fontSize: '14px',
+          fontWeight: '600',
+          zIndex: 1000,
+          display: 'flex',
+          alignItems: 'center',
+          gap: '10px',
+          maxWidth: '400px',
+          boxShadow: '0 4px 12px rgba(0, 0, 0, 0.3)'
+        }}>
+          <AlertCircle size={18} />
+          <span>{error}</span>
+          <button
+            onClick={() => setError(null)}
+            style={{
+              background: 'transparent',
+              border: 'none',
+              color: '#fff',
+              cursor: 'pointer',
+              fontSize: '18px',
+              padding: '0 8px',
+              marginLeft: 'auto'
+            }}
+          >
+            ×
+          </button>
+        </div>
+      )}
+
+      {/* Saving Indicator */}
+      {isSaving && (
+        <div style={{
+          position: 'fixed',
+          top: '20px',
+          right: '20px',
+          background: 'rgba(59, 130, 246, 0.9)',
+          color: '#fff',
+          padding: '12px 20px',
+          borderRadius: '8px',
+          fontSize: '14px',
+          fontWeight: '600',
+          zIndex: 1000,
+          display: 'flex',
+          alignItems: 'center',
+          gap: '10px',
+          boxShadow: '0 4px 12px rgba(0, 0, 0, 0.3)'
+        }}>
+          <Loader2 size={16} className="animate-spin" />
+          <span>Saving to cloud storage...</span>
+        </div>
+      )}
+
       {/* Sidebar */}
       <div style={{
         width: '320px',
@@ -1499,6 +1624,17 @@ const DubaiAIDashboard = () => {
           input[type="date"]::-webkit-calendar-picker-indicator {
             filter: invert(1);
             cursor: pointer;
+          }
+          @keyframes spin {
+            from {
+              transform: rotate(0deg);
+            }
+            to {
+              transform: rotate(360deg);
+            }
+          }
+          .animate-spin {
+            animation: spin 1s linear infinite;
           }
         `}
       </style>
