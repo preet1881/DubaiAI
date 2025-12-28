@@ -402,12 +402,28 @@ const DubaiAIDashboard = () => {
       try {
         // Fetch dashboard data and preferences in parallel
         const [dashboardData, preferences] = await Promise.all([
-          fetchAllDashboardData().catch(() => defaultJourneyData),
+          fetchAllDashboardData().catch((err) => {
+            console.error('Error fetching dashboard data:', err);
+            setError('Failed to load data from cloud storage. Using default data.');
+            return defaultJourneyData;
+          }),
           fetchUserPreferences().catch(() => ({ selectedCategory: 'City Service', selectedJourney: 'Property Sell (Sell/Buy)' }))
         ]);
         
+        // Always use fetched data if available, even if empty (don't fall back to default)
         if (dashboardData && Object.keys(dashboardData).length > 0) {
+          console.log('✅ Loaded data from database:', dashboardData);
+          // Log specific journey to verify
+          if (dashboardData['City Service']) {
+            const newVisa = dashboardData['City Service'].find(j => j.name === 'New Visa');
+            if (newVisa) {
+              console.log('🔍 New Visa in fetched data:', newVisa.notes);
+            }
+          }
           setJourneyData(dashboardData);
+        } else {
+          console.warn('⚠️ No data returned from database, using default data');
+          setJourneyData(defaultJourneyData);
         }
         
         if (preferences) {
@@ -417,7 +433,7 @@ const DubaiAIDashboard = () => {
       } catch (err) {
         console.error('Error loading data from API:', err);
         setError('Failed to load data from cloud storage. Using default data.');
-        // Continue with default data
+        setJourneyData(defaultJourneyData);
       } finally {
         setIsLoading(false);
         // Mark initial load as complete after a short delay to prevent immediate save

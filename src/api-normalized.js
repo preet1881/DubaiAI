@@ -22,9 +22,14 @@ if (supabaseUrl && supabaseAnonKey) {
  * This is called once on page load
  */
 export const fetchAllDashboardData = async () => {
-  if (!supabase) throw new Error('Supabase not initialized');
+  if (!supabase) {
+    console.error('❌ Supabase not initialized');
+    throw new Error('Supabase not initialized');
+  }
 
   try {
+    console.log('🔄 Fetching data from Supabase...');
+    
     // Fetch all data in parallel
     const [categoriesResult, journeysResult, stagesResult, dependenciesResult] = await Promise.all([
       supabase.from('categories').select('*').order('display_order'),
@@ -33,15 +38,29 @@ export const fetchAllDashboardData = async () => {
       supabase.from('dependencies').select('*')
     ]);
 
-    if (categoriesResult.error) throw categoriesResult.error;
-    if (journeysResult.error) throw journeysResult.error;
-    if (stagesResult.error) throw stagesResult.error;
-    if (dependenciesResult.error) throw dependenciesResult.error;
+    if (categoriesResult.error) {
+      console.error('❌ Categories error:', categoriesResult.error);
+      throw categoriesResult.error;
+    }
+    if (journeysResult.error) {
+      console.error('❌ Journeys error:', journeysResult.error);
+      throw journeysResult.error;
+    }
+    if (stagesResult.error) {
+      console.error('❌ Stages error:', stagesResult.error);
+      throw stagesResult.error;
+    }
+    if (dependenciesResult.error) {
+      console.error('❌ Dependencies error:', dependenciesResult.error);
+      throw dependenciesResult.error;
+    }
 
     const categories = categoriesResult.data || [];
     const journeys = journeysResult.data || [];
     const stages = stagesResult.data || [];
     const dependencies = dependenciesResult.data || [];
+
+    console.log(`📊 Fetched: ${categories.length} categories, ${journeys.length} journeys, ${stages.length} stages, ${dependencies.length} dependencies`);
 
     // Aggregate into the same structure as before
     const aggregated = {};
@@ -81,9 +100,20 @@ export const fetchAllDashboardData = async () => {
         });
     });
 
+    // Log specific journey for debugging
+    const newVisaJourney = journeys.find(j => j.name === 'New Visa');
+    if (newVisaJourney) {
+      console.log('🔍 New Visa journey from DB:', {
+        name: newVisaJourney.name,
+        notes: newVisaJourney.notes,
+        id: newVisaJourney.id
+      });
+    }
+
+    console.log('✅ Data aggregation complete');
     return aggregated;
   } catch (error) {
-    console.error('Error fetching dashboard data:', error);
+    console.error('❌ Error fetching dashboard data:', error);
     throw error;
   }
 };
