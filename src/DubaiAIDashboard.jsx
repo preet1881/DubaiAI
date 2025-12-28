@@ -512,8 +512,17 @@ const DubaiAIDashboard = () => {
   };
 
   const currentJourney = useMemo(() => {
-    const category = journeyData[selectedCategory];
-    return category?.find(j => j.name === selectedJourney) || category?.[0];
+    try {
+      const category = journeyData[selectedCategory];
+      if (!category || !Array.isArray(category)) {
+        console.warn('Invalid category data:', selectedCategory, journeyData);
+        return null;
+      }
+      return category.find(j => j.name === selectedJourney) || category[0] || null;
+    } catch (error) {
+      console.error('Error calculating currentJourney:', error);
+      return null;
+    }
   }, [selectedCategory, selectedJourney, journeyData]);
 
   const categoryStats = useMemo(() => {
