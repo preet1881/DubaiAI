@@ -1,9 +1,9 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { Calendar, CheckCircle2, Clock, AlertCircle, ChevronRight, Edit2, Save, Plus, Trash2, Link, FolderPlus, FilePlus } from 'lucide-react';
 
 const DubaiAIDashboard = () => {
-  // Initial data with all journeys from CSV
-  const [journeyData, setJourneyData] = useState({
+  // Default/initial data with all journeys from CSV
+  const defaultJourneyData = {
     'City Service': [
       {
         name: 'Property Sell (Sell/Buy)',
@@ -193,10 +193,38 @@ const DubaiAIDashboard = () => {
         dependencies: []
       }
     ]
-  });
+  };
 
-  const [selectedCategory, setSelectedCategory] = useState('City Service');
-  const [selectedJourney, setSelectedJourney] = useState('Property Sell (Sell/Buy)');
+  // Load data from localStorage or use default
+  const loadFromLocalStorage = () => {
+    try {
+      const saved = localStorage.getItem('dubaiAI-dashboard-data');
+      if (saved) {
+        return JSON.parse(saved);
+      }
+    } catch (error) {
+      console.error('Error loading from localStorage:', error);
+    }
+    return defaultJourneyData;
+  };
+
+  const loadSelectedFromLocalStorage = (key, defaultValue) => {
+    try {
+      const saved = localStorage.getItem(`dubaiAI-dashboard-${key}`);
+      return saved || defaultValue;
+    } catch (error) {
+      return defaultValue;
+    }
+  };
+
+  // Initialize state with localStorage data or defaults
+  const [journeyData, setJourneyData] = useState(loadFromLocalStorage);
+  const [selectedCategory, setSelectedCategory] = useState(() => 
+    loadSelectedFromLocalStorage('selectedCategory', 'City Service')
+  );
+  const [selectedJourney, setSelectedJourney] = useState(() => 
+    loadSelectedFromLocalStorage('selectedJourney', 'Property Sell (Sell/Buy)')
+  );
   const [editMode, setEditMode] = useState(false);
   const [showAddCategory, setShowAddCategory] = useState(false);
   const [showAddJourney, setShowAddJourney] = useState(false);
@@ -204,6 +232,32 @@ const DubaiAIDashboard = () => {
   const [newJourneyName, setNewJourneyName] = useState('');
   const [editingJourneyName, setEditingJourneyName] = useState(null);
   const [tempJourneyName, setTempJourneyName] = useState('');
+
+  // Save journeyData to localStorage whenever it changes
+  useEffect(() => {
+    try {
+      localStorage.setItem('dubaiAI-dashboard-data', JSON.stringify(journeyData));
+    } catch (error) {
+      console.error('Error saving to localStorage:', error);
+    }
+  }, [journeyData]);
+
+  // Save selected category and journey to localStorage
+  useEffect(() => {
+    try {
+      localStorage.setItem('dubaiAI-dashboard-selectedCategory', selectedCategory);
+    } catch (error) {
+      console.error('Error saving selectedCategory:', error);
+    }
+  }, [selectedCategory]);
+
+  useEffect(() => {
+    try {
+      localStorage.setItem('dubaiAI-dashboard-selectedJourney', selectedJourney);
+    } catch (error) {
+      console.error('Error saving selectedJourney:', error);
+    }
+  }, [selectedJourney]);
 
   // Template for new stages
   const getDefaultStages = () => [

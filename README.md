@@ -11,6 +11,7 @@ A comprehensive resource tracking dashboard for Dubai AI projects. This dashboar
 - 🔗 **Dependencies**: Manage and track project dependencies
 - ✏️ **Edit Mode**: Full editing capabilities for categories, journeys, stages, and dependencies
 - 📝 **Notes**: Add and edit notes for each journey
+- 💾 **Auto-Save**: All edits are automatically saved to browser's localStorage
 - 🎨 **Modern UI**: Beautiful dark theme with gradient backgrounds
 
 ## Getting Started
@@ -73,6 +74,17 @@ The production build will be in the `dist` directory.
 - Click the **"+"** button next to "Journeys" in the sidebar, or
 - Click the **"Add Journey"** button at the bottom of the journey list
 - Enter the journey name and press Enter or click Add
+
+### Data Persistence
+
+All your edits are **automatically saved** to your browser's localStorage. This means:
+- ✅ Your changes persist across page refreshes
+- ✅ Your data is saved locally in your browser
+- ✅ No need to manually save - everything is auto-saved
+- ⚠️ Data is stored per browser/device (not synced across devices)
+- ⚠️ Clearing browser data will remove saved changes
+
+To reset to default data, you can clear your browser's localStorage for this site.
 
 ## Project Structure
 
