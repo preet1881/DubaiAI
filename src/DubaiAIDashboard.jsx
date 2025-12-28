@@ -216,6 +216,7 @@ const DubaiAIDashboard = () => {
   // Refs for debouncing API calls
   const saveTimeoutRef = useRef(null);
   const preferencesTimeoutRef = useRef(null);
+  const isInitialLoadRef = useRef(true);
 
   // Fetch data from API on component mount
   useEffect(() => {
@@ -243,6 +244,10 @@ const DubaiAIDashboard = () => {
         // Continue with default data
       } finally {
         setIsLoading(false);
+        // Mark initial load as complete after a short delay to prevent immediate save
+        setTimeout(() => {
+          isInitialLoadRef.current = false;
+        }, 1000);
       }
     };
 
@@ -251,8 +256,8 @@ const DubaiAIDashboard = () => {
 
   // Debounced save to API when journeyData changes
   useEffect(() => {
-    // Skip save on initial load
-    if (isLoading) return;
+    // Skip save on initial load or while loading
+    if (isLoading || isInitialLoadRef.current) return;
 
     // Clear existing timeout
     if (saveTimeoutRef.current) {
@@ -264,6 +269,8 @@ const DubaiAIDashboard = () => {
       setIsSaving(true);
       try {
         await saveDashboardData(journeyData);
+        // Clear error on successful save
+        setError(null);
       } catch (err) {
         console.error('Error saving to API:', err);
         setError('Failed to save to cloud storage. Please try again.');

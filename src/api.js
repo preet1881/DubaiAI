@@ -81,14 +81,19 @@ export const fetchDashboardData = async () => {
 export const saveDashboardData = async (data) => {
   if (supabase) {
     try {
-      // Check if record exists
-      const { data: existing } = await supabase
+      // Check if record exists (handle case where no records exist)
+      const { data: existing, error: fetchError } = await supabase
         .from('dashboard_data')
         .select('id')
         .limit(1)
-        .single();
+        .maybeSingle();
 
-      if (existing) {
+      // If error is not "no rows" error, throw it
+      if (fetchError && fetchError.code !== 'PGRST116') {
+        throw fetchError;
+      }
+
+      if (existing && existing.id) {
         // Update existing record
         const { error } = await supabase
           .from('dashboard_data')
