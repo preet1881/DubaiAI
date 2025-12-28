@@ -1,6 +1,6 @@
 import React, { useState, useMemo, useEffect, useRef } from 'react';
 import { Calendar, CheckCircle2, Clock, AlertCircle, ChevronRight, Edit2, Save, Plus, Trash2, Link, FolderPlus, FilePlus, Loader2 } from 'lucide-react';
-import { fetchDashboardData, saveDashboardData, fetchUserPreferences, saveUserPreferences } from './api';
+import { fetchAllDashboardData, updateStage, updateJourneyNotes, updateDependency, fetchUserPreferences, saveUserPreferences } from './api-normalized';
 
 const DubaiAIDashboard = () => {
   // Default/initial data with all journeys - Complete Journey Data
@@ -402,7 +402,7 @@ const DubaiAIDashboard = () => {
       try {
         // Fetch dashboard data and preferences in parallel
         const [dashboardData, preferences] = await Promise.all([
-          fetchDashboardData().catch(() => defaultJourneyData),
+          fetchAllDashboardData().catch(() => defaultJourneyData),
           fetchUserPreferences().catch(() => ({ selectedCategory: 'City Service', selectedJourney: 'Property Sell (Sell/Buy)' }))
         ]);
         
@@ -430,37 +430,7 @@ const DubaiAIDashboard = () => {
     loadData();
   }, []);
 
-  // Debounced save to API when journeyData changes
-  useEffect(() => {
-    // Skip save on initial load or while loading
-    if (isLoading || isInitialLoadRef.current) return;
-
-    // Clear existing timeout
-    if (saveTimeoutRef.current) {
-      clearTimeout(saveTimeoutRef.current);
-    }
-
-    // Set new timeout to save after 500ms of no changes
-    saveTimeoutRef.current = setTimeout(async () => {
-      setIsSaving(true);
-      try {
-        await saveDashboardData(journeyData);
-        // Clear error on successful save
-        setError(null);
-      } catch (err) {
-        console.error('Error saving to API:', err);
-        setError('Failed to save to cloud storage. Please try again.');
-      } finally {
-        setIsSaving(false);
-      }
-    }, 500);
-
-    return () => {
-      if (saveTimeoutRef.current) {
-        clearTimeout(saveTimeoutRef.current);
-      }
-    };
-  }, [journeyData, isLoading]);
+  // Note: Bulk save removed - now using granular updates per field
 
   // Debounced save preferences to API
   useEffect(() => {
@@ -541,13 +511,37 @@ const DubaiAIDashboard = () => {
     });
   }, [journeyData]);
 
-  const updateStage = (stageIndex, field, value) => {
+  const updateStageLocal = async (stageIndex, field, value) => {
+    // Update local state immediately
     setJourneyData(prev => {
       const newData = JSON.parse(JSON.stringify(prev));
       const journeyIndex = newData[selectedCategory].findIndex(j => j.name === selectedJourney);
-      newData[selectedCategory][journeyIndex].stages[stageIndex][field] = value;
+      const stage = newData[selectedCategory][journeyIndex].stages[stageIndex];
+      stage[field] = value;
       return newData;
     });
+
+    // Save to database (granular update)
+    if (!isLoading && !isInitialLoadRef.current) {
+      const journey = currentJourney;
+      if (journey && journey.stages && journey.stages[stageIndex] && journey.stages[stageIndex].id) {
+        setIsSaving(true);
+        try {
+          const updates = { [field]: value };
+          // Convert empty strings to null for dates
+          if ((field === 'eta' || field === 'actual') && value === '') {
+            updates[field] = null;
+          }
+          await updateStage(journey.stages[stageIndex].id, updates);
+          setError(null);
+        } catch (err) {
+          console.error('Error updating stage:', err);
+          setError('Failed to save. Please try again.');
+        } finally {
+          setIsSaving(false);
+        }
+      }
+    }
   };
 
   const addStage = () => {
@@ -575,13 +569,37 @@ const DubaiAIDashboard = () => {
     });
   };
 
-  const updateDependency = (depIndex, field, value) => {
+  const updateDependencyLocal = async (depIndex, field, value) => {
+    // Update local state immediately
     setJourneyData(prev => {
       const newData = JSON.parse(JSON.stringify(prev));
       const journeyIndex = newData[selectedCategory].findIndex(j => j.name === selectedJourney);
       newData[selectedCategory][journeyIndex].dependencies[depIndex][field] = value;
       return newData;
     });
+
+    // Save to database (granular update)
+    if (!isLoading && !isInitialLoadRef.current) {
+      const journey = currentJourney;
+      if (journey && journey.dependencies && journey.dependencies[depIndex] && journey.dependencies[depIndex].id) {
+        setIsSaving(true);
+        try {
+          const updates = { [field]: value };
+          // Map frontend field name to DB field name
+          if (field === 'dependsOn') {
+            updates.depends_on = value;
+            delete updates.dependsOn;
+          }
+          await updateDependency(journey.dependencies[depIndex].id, updates);
+          setError(null);
+        } catch (err) {
+          console.error('Error updating dependency:', err);
+          setError('Failed to save. Please try again.');
+        } finally {
+          setIsSaving(false);
+        }
+      }
+    }
   };
 
   const addDependency = () => {
@@ -606,13 +624,28 @@ const DubaiAIDashboard = () => {
     });
   };
 
-  const updateNotes = (notes) => {
+  const updateNotes = async (notes) => {
+    // Update local state immediately
     setJourneyData(prev => {
       const newData = JSON.parse(JSON.stringify(prev));
       const journeyIndex = newData[selectedCategory].findIndex(j => j.name === selectedJourney);
       newData[selectedCategory][journeyIndex].notes = notes;
       return newData;
     });
+
+    // Save to database (granular update)
+    if (!isLoading && !isInitialLoadRef.current && currentJourney && currentJourney.id) {
+      setIsSaving(true);
+      try {
+        await updateJourneyNotes(currentJourney.id, notes);
+        setError(null);
+      } catch (err) {
+        console.error('Error updating journey notes:', err);
+        setError('Failed to save. Please try again.');
+      } finally {
+        setIsSaving(false);
+      }
+    }
   };
 
   const updateJourneyName = (oldName, newName) => {
@@ -1376,7 +1409,7 @@ const DubaiAIDashboard = () => {
                       <input
                         type="text"
                         value={stage.name}
-                        onChange={(e) => updateStage(index, 'name', e.target.value)}
+                        onChange={(e) => updateStageLocal(index, 'name', e.target.value)}
                         style={{
                           minWidth: '200px',
                           padding: '8px 12px',
@@ -1390,7 +1423,7 @@ const DubaiAIDashboard = () => {
                       />
                       <select
                         value={stage.status}
-                        onChange={(e) => updateStage(index, 'status', e.target.value)}
+                        onChange={(e) => updateStageLocal(index, 'status', e.target.value)}
                         style={{
                           padding: '8px 12px',
                           background: 'rgba(15, 23, 42, 0.8)',
@@ -1411,7 +1444,7 @@ const DubaiAIDashboard = () => {
                       <input
                         type="number"
                         value={stage.progress}
-                        onChange={(e) => updateStage(index, 'progress', Math.min(100, Math.max(0, parseInt(e.target.value) || 0)))}
+                        onChange={(e) => updateStageLocal(index, 'progress', Math.min(100, Math.max(0, parseInt(e.target.value) || 0)))}
                         style={{
                           width: '80px',
                           padding: '8px 12px',
@@ -1481,8 +1514,8 @@ const DubaiAIDashboard = () => {
                     {editMode ? (
                       <input
                         type="date"
-                        value={stage.eta}
-                        onChange={(e) => updateStage(index, 'eta', e.target.value)}
+                        value={stage.eta || ''}
+                        onChange={(e) => updateStageLocal(index, 'eta', e.target.value || '')}
                         style={{
                           padding: '6px 10px',
                           background: 'rgba(15, 23, 42, 0.8)',
@@ -1490,7 +1523,8 @@ const DubaiAIDashboard = () => {
                           borderRadius: '6px',
                           color: '#e2e8f0',
                           fontSize: '12px',
-                          fontFamily: 'inherit'
+                          fontFamily: 'inherit',
+                          minWidth: '140px'
                         }}
                       />
                     ) : (
@@ -1504,8 +1538,8 @@ const DubaiAIDashboard = () => {
                     {editMode ? (
                       <input
                         type="date"
-                        value={stage.actual}
-                        onChange={(e) => updateStage(index, 'actual', e.target.value)}
+                        value={stage.actual || ''}
+                        onChange={(e) => updateStageLocal(index, 'actual', e.target.value || '')}
                         style={{
                           padding: '6px 10px',
                           background: 'rgba(15, 23, 42, 0.8)',
@@ -1513,7 +1547,8 @@ const DubaiAIDashboard = () => {
                           borderRadius: '6px',
                           color: '#e2e8f0',
                           fontSize: '12px',
-                          fontFamily: 'inherit'
+                          fontFamily: 'inherit',
+                          minWidth: '140px'
                         }}
                       />
                     ) : (
@@ -1657,7 +1692,7 @@ const DubaiAIDashboard = () => {
                         <input
                           type="text"
                           value={dep.item}
-                          onChange={(e) => updateDependency(index, 'item', e.target.value)}
+                          onChange={(e) => updateDependencyLocal(index, 'item', e.target.value)}
                           style={{
                             width: '100%',
                             padding: '8px 12px',
@@ -1676,7 +1711,7 @@ const DubaiAIDashboard = () => {
                         <input
                           type="text"
                           value={dep.dependsOn}
-                          onChange={(e) => updateDependency(index, 'dependsOn', e.target.value)}
+                          onChange={(e) => updateDependencyLocal(index, 'dependsOn', e.target.value)}
                           style={{
                             width: '100%',
                             padding: '8px 12px',
@@ -1694,7 +1729,7 @@ const DubaiAIDashboard = () => {
                       {editMode ? (
                         <select
                           value={dep.status}
-                          onChange={(e) => updateDependency(index, 'status', e.target.value)}
+                          onChange={(e) => updateDependencyLocal(index, 'status', e.target.value)}
                           style={{
                             padding: '8px 12px',
                             background: 'rgba(15, 23, 42, 0.8)',
