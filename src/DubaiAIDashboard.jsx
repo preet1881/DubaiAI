@@ -3,81 +3,151 @@ import { Calendar, CheckCircle2, Clock, AlertCircle, ChevronRight, Edit2, Save, 
 import { fetchDashboardData, saveDashboardData, fetchUserPreferences, saveUserPreferences } from './api';
 
 const DubaiAIDashboard = () => {
-  // Default/initial data with all journeys from CSV
+  // Default/initial data with all journeys - Complete Journey Data
   const defaultJourneyData = {
     'City Service': [
       {
         name: 'Property Sell (Sell/Buy)',
         stages: [
-          { name: 'API Integration', status: 'done', progress: 100, eta: '2024-01-30', actual: '2024-01-28' },
-          { name: 'Build', status: 'done', progress: 100, eta: '2024-02-28', actual: '2024-02-25' },
-          { name: 'UA QA Signoff (en-US)', status: 'done', progress: 100, eta: '2024-03-15', actual: '2024-03-14' },
-          { name: 'UA QA Signoff (ae-AR)', status: 'done', progress: 100, eta: '2024-03-15', actual: '2024-03-15' },
-          { name: 'UA - CX Review', status: 'active', progress: 60, eta: '2024-12-30', actual: '' },
-          { name: 'Security HLD Review', status: 'done', progress: 100, eta: '2024-02-10', actual: '2024-02-08' },
-          { name: 'Security LLD Review', status: 'pending', progress: 0, eta: '2025-01-15', actual: '' },
-          { name: 'Security PenTesting', status: 'active', progress: 40, eta: '2025-01-25', actual: '' }
+          { name: 'API Integration', status: 'done', progress: 100, eta: '', actual: '', notes: 'API Working with mock data' },
+          { name: 'Build', status: 'done', progress: 100, eta: '', actual: '', notes: 'Build (with API Integration) completed' },
+          { name: 'UA QA Signoff (en-US)', status: 'active', progress: 50, eta: '', actual: '', notes: 'In progress' },
+          { name: 'UA QA Signoff (ae-AR)', status: 'active', progress: 50, eta: '', actual: '', notes: 'In progress' },
+          { name: 'UA - CX Review', status: 'done', progress: 100, eta: '', actual: '', notes: 'Completed' },
+          { name: 'DDA QA Signoff (en-US)', status: 'not-started', progress: 0, eta: '', actual: '', notes: 'Yet to start' },
+          { name: 'DDA QA Signoff (ae-AR)', status: 'not-started', progress: 0, eta: '', actual: '', notes: 'Yet to start' },
+          { name: 'DDA - CX review', status: 'done', progress: 100, eta: '', actual: '', notes: 'Feedback received' },
+          { name: 'CX Design Feedback', status: 'active', progress: 60, eta: '', actual: '', notes: 'In progress' },
+          { name: 'Security HLD Review', status: 'done', progress: 100, eta: '', actual: '', notes: 'Signed Off' },
+          { name: 'Security LLD Review', status: 'active', progress: 50, eta: '', actual: '', notes: 'In progress' },
+          { name: 'Security PenTesting', status: 'active', progress: 50, eta: '', actual: '', notes: 'In progress' },
+          { name: 'Load Testing', status: 'not-started', progress: 0, eta: '', actual: '', notes: 'Alignment Call to be setup on 10th Dec' }
         ],
         notes: 'Alignment Call to be setup on 10th Dec',
         dependencies: [
-          { item: 'Security LLD Review', dependsOn: 'UnifyApps', status: 'pending' }
+          { item: 'Load Testing', dependsOn: 'Infrastructure Setup', status: 'pending' }
         ]
       },
       {
         name: 'Domestic Worker',
         stages: [
-          { name: 'API Integration', status: 'critical', progress: 30, eta: '2025-01-10', actual: '' },
-          { name: 'Build', status: 'active', progress: 50, eta: '2025-01-20', actual: '' },
-          { name: 'UA QA Signoff (en-US)', status: 'done', progress: 100, eta: '2024-03-15', actual: '2024-03-14' },
-          { name: 'UA - CX Review', status: 'active', progress: 60, eta: '2024-12-30', actual: '' }
+          { name: 'API Integration', status: 'critical', progress: 30, eta: '', actual: '', notes: 'API not working with mock data' },
+          { name: 'Build', status: 'active', progress: 50, eta: '', actual: '', notes: 'Partially build with API' },
+          { name: 'UA QA Signoff (en-US)', status: 'active', progress: 50, eta: '', actual: '', notes: 'In progress' },
+          { name: 'UA QA Signoff (ae-AR)', status: 'active', progress: 50, eta: '', actual: '', notes: 'In progress' },
+          { name: 'UA - CX Review', status: 'done', progress: 100, eta: '', actual: '', notes: 'Completed' },
+          { name: 'DDA QA Signoff (en-US)', status: 'not-started', progress: 0, eta: '', actual: '', notes: 'Yet to start' },
+          { name: 'DDA QA Signoff (ae-AR)', status: 'not-started', progress: 0, eta: '', actual: '', notes: 'Yet to start' },
+          { name: 'DDA - CX review', status: 'done', progress: 100, eta: '', actual: '', notes: 'Feedback received' },
+          { name: 'CX Design Feedback', status: 'active', progress: 60, eta: '', actual: '', notes: 'In progress' },
+          { name: 'Security HLD Review', status: 'done', progress: 100, eta: '', actual: '', notes: 'Signed Off' },
+          { name: 'Security LLD Review', status: 'active', progress: 50, eta: '', actual: '', notes: 'In progress' },
+          { name: 'Security PenTesting', status: 'not-started', progress: 0, eta: '', actual: '', notes: 'Yet to start' }
         ],
         notes: 'API not working with mock data',
-        dependencies: []
+        dependencies: [
+          { item: 'API Integration', dependsOn: 'Third-party API vendor', status: 'blocked' }
+        ]
       },
       {
         name: 'DEWA (Move In/Out/Move To)',
         stages: [
-          { name: 'API Integration', status: 'critical', progress: 30, eta: '2025-01-10', actual: '' },
-          { name: 'Build', status: 'active', progress: 50, eta: '2025-01-20', actual: '' }
+          { name: 'API Integration', status: 'critical', progress: 30, eta: '', actual: '', notes: 'API not working with mock data' },
+          { name: 'Build', status: 'active', progress: 50, eta: '', actual: '', notes: 'Partially build with API' },
+          { name: 'UA QA Signoff (en-US)', status: 'active', progress: 50, eta: '', actual: '', notes: 'In progress' },
+          { name: 'UA QA Signoff (ae-AR)', status: 'active', progress: 50, eta: '', actual: '', notes: 'In progress' },
+          { name: 'UA - CX Review', status: 'done', progress: 100, eta: '', actual: '', notes: 'Completed' },
+          { name: 'DDA QA Signoff (en-US)', status: 'not-started', progress: 0, eta: '', actual: '', notes: 'Yet to start' },
+          { name: 'DDA QA Signoff (ae-AR)', status: 'not-started', progress: 0, eta: '', actual: '', notes: 'Yet to start' },
+          { name: 'DDA - CX review', status: 'done', progress: 100, eta: '', actual: '', notes: 'Feedback received' },
+          { name: 'CX Design Feedback', status: 'active', progress: 60, eta: '', actual: '', notes: 'In progress' },
+          { name: 'Security HLD Review', status: 'done', progress: 100, eta: '', actual: '', notes: 'Signed Off' },
+          { name: 'Security LLD Review', status: 'active', progress: 50, eta: '', actual: '', notes: 'In progress' },
+          { name: 'Security PenTesting', status: 'not-started', progress: 0, eta: '', actual: '', notes: 'Yet to start' }
         ],
-        notes: 'API not working',
-        dependencies: []
+        notes: 'API not working with mock data',
+        dependencies: [
+          { item: 'API Integration', dependsOn: 'DEWA API Access', status: 'blocked' }
+        ]
       },
       {
         name: 'Visa Renewal Residency',
         stages: [
-          { name: 'API Integration', status: 'critical', progress: 50, eta: '2025-01-10', actual: '' },
-          { name: 'Build', status: 'done', progress: 100, eta: '2024-11-30', actual: '2024-11-28' }
+          { name: 'API Integration', status: 'active', progress: 70, eta: '', actual: '', notes: 'API Partially working with mock data' },
+          { name: 'Build', status: 'done', progress: 100, eta: '', actual: '', notes: 'Build (with API Integration) completed' },
+          { name: 'UA QA Signoff (en-US)', status: 'active', progress: 50, eta: '', actual: '', notes: 'In progress' },
+          { name: 'UA QA Signoff (ae-AR)', status: 'active', progress: 50, eta: '', actual: '', notes: 'In progress' },
+          { name: 'UA - CX Review', status: 'done', progress: 100, eta: '', actual: '', notes: 'Completed' },
+          { name: 'DDA QA Signoff (en-US)', status: 'not-started', progress: 0, eta: '', actual: '', notes: 'Yet to start' },
+          { name: 'DDA QA Signoff (ae-AR)', status: 'not-started', progress: 0, eta: '', actual: '', notes: 'Yet to start' },
+          { name: 'DDA - CX review', status: 'done', progress: 100, eta: '', actual: '', notes: 'Feedback received' },
+          { name: 'CX Design Feedback', status: 'done', progress: 100, eta: '', actual: '', notes: 'Feedback Closed' },
+          { name: 'Security HLD Review', status: 'done', progress: 100, eta: '', actual: '', notes: 'Signed Off' },
+          { name: 'Security LLD Review', status: 'active', progress: 50, eta: '', actual: '', notes: 'In progress' },
+          { name: 'Security PenTesting', status: 'not-started', progress: 0, eta: '', actual: '', notes: 'Yet to start' }
         ],
-        notes: 'API Partially working',
-        dependencies: []
+        notes: 'API Partially working with mock data',
+        dependencies: [
+          { item: 'API Integration', dependsOn: 'GDRFA API', status: 'in-progress' }
+        ]
       },
       {
         name: 'Car Sell',
         stages: [
-          { name: 'API Integration', status: 'critical', progress: 0, eta: '2025-01-20', actual: '' },
-          { name: 'Build', status: 'done', progress: 100, eta: '2024-12-01', actual: '2024-11-30' }
+          { name: 'API Integration', status: 'critical', progress: 0, eta: '', actual: '', notes: 'Mock Data Pending' },
+          { name: 'Build', status: 'active', progress: 50, eta: '', actual: '', notes: 'Partially build with API' },
+          { name: 'UA QA Signoff (en-US)', status: 'active', progress: 50, eta: '', actual: '', notes: 'In progress' },
+          { name: 'UA QA Signoff (ae-AR)', status: 'active', progress: 50, eta: '', actual: '', notes: 'In progress' },
+          { name: 'UA - CX Review', status: 'done', progress: 100, eta: '', actual: '', notes: 'Completed' },
+          { name: 'DDA QA Signoff (en-US)', status: 'not-started', progress: 0, eta: '', actual: '', notes: 'Yet to start' },
+          { name: 'DDA QA Signoff (ae-AR)', status: 'not-started', progress: 0, eta: '', actual: '', notes: 'Yet to start' },
+          { name: 'DDA - CX review', status: 'done', progress: 100, eta: '', actual: '', notes: 'Feedback received' },
+          { name: 'CX Design Feedback', status: 'done', progress: 100, eta: '', actual: '', notes: 'Feedback received' },
+          { name: 'Security HLD Review', status: 'done', progress: 100, eta: '', actual: '', notes: 'Signed Off' },
+          { name: 'Security LLD Review', status: 'active', progress: 50, eta: '', actual: '', notes: 'In progress' },
+          { name: 'Security PenTesting', status: 'not-started', progress: 0, eta: '', actual: '', notes: 'Yet to start' }
         ],
         notes: 'Mock Data Pending',
-        dependencies: []
+        dependencies: [
+          { item: 'API Integration', dependsOn: 'RTA Mock Data', status: 'blocked' }
+        ]
       },
       {
         name: 'Car Accident',
         stages: [
-          { name: 'API Integration', status: 'done', progress: 100, eta: '2024-10-30', actual: '2024-10-28' },
-          { name: 'Build', status: 'done', progress: 100, eta: '2024-11-30', actual: '2024-11-28' },
-          { name: 'Security PenTesting', status: 'active', progress: 40, eta: '2025-01-20', actual: '' }
+          { name: 'API Integration', status: 'done', progress: 100, eta: '', actual: '', notes: 'API Working with mock data' },
+          { name: 'Build', status: 'done', progress: 100, eta: '', actual: '', notes: 'Build (with API Integration) completed' },
+          { name: 'UA QA Signoff (en-US)', status: 'active', progress: 50, eta: '', actual: '', notes: 'In progress' },
+          { name: 'UA QA Signoff (ae-AR)', status: 'done', progress: 100, eta: '', actual: '', notes: 'Completed with API' },
+          { name: 'UA - CX Review', status: 'done', progress: 100, eta: '', actual: '', notes: 'Completed' },
+          { name: 'DDA QA Signoff (en-US)', status: 'active', progress: 50, eta: '', actual: '', notes: 'In progress' },
+          { name: 'DDA QA Signoff (ae-AR)', status: 'not-started', progress: 0, eta: '', actual: '', notes: 'Yet to start' },
+          { name: 'DDA - CX review', status: 'done', progress: 100, eta: '', actual: '', notes: 'Feedback received' },
+          { name: 'CX Design Feedback', status: 'done', progress: 100, eta: '', actual: '', notes: 'Feedback Closed' },
+          { name: 'Security HLD Review', status: 'done', progress: 100, eta: '', actual: '', notes: 'Signed Off' },
+          { name: 'Security LLD Review', status: 'active', progress: 50, eta: '', actual: '', notes: 'In progress' },
+          { name: 'Security PenTesting', status: 'active', progress: 50, eta: '', actual: '', notes: 'In progress' }
         ],
-        notes: 'Feedback received',
+        notes: 'In progress',
         dependencies: []
       },
       {
         name: 'New Visa',
         stages: [
-          { name: 'API Integration', status: 'done', progress: 100, eta: '2024-10-30', actual: '2024-10-28' },
-          { name: 'Build', status: 'done', progress: 100, eta: '2024-11-30', actual: '2024-11-28' }
+          { name: 'API Integration', status: 'done', progress: 100, eta: '', actual: '', notes: 'API Working with mock data' },
+          { name: 'Build', status: 'done', progress: 100, eta: '', actual: '', notes: 'Build (with API Integration) completed' },
+          { name: 'UA QA Signoff (en-US)', status: 'active', progress: 50, eta: '', actual: '', notes: 'In progress' },
+          { name: 'UA QA Signoff (ae-AR)', status: 'active', progress: 50, eta: '', actual: '', notes: 'In progress' },
+          { name: 'UA - CX Review', status: 'done', progress: 100, eta: '', actual: '', notes: 'Completed' },
+          { name: 'DDA QA Signoff (en-US)', status: 'not-started', progress: 0, eta: '', actual: '', notes: 'Yet to start' },
+          { name: 'DDA QA Signoff (ae-AR)', status: 'not-started', progress: 0, eta: '', actual: '', notes: 'Yet to start' },
+          { name: 'DDA - CX review', status: 'done', progress: 100, eta: '', actual: '', notes: 'Feedback received' },
+          { name: 'CX Design Feedback', status: 'done', progress: 100, eta: '', actual: '', notes: 'Feedback received' },
+          { name: 'Security HLD Review', status: 'done', progress: 100, eta: '', actual: '', notes: 'Signed Off' },
+          { name: 'Security LLD Review', status: 'active', progress: 50, eta: '', actual: '', notes: 'In progress' },
+          { name: 'Security PenTesting', status: 'not-started', progress: 0, eta: '', actual: '', notes: 'Yet to start' }
         ],
-        notes: 'API Working',
+        notes: 'API Working with mock data',
         dependencies: []
       }
     ],
@@ -85,113 +155,219 @@ const DubaiAIDashboard = () => {
       {
         name: 'Hospital',
         stages: [
-          { name: 'API Integration', status: 'done', progress: 100, eta: '2024-02-15', actual: '2024-02-14' },
-          { name: 'Build', status: 'done', progress: 100, eta: '2024-03-01', actual: '2024-02-28' },
-          { name: 'DDA QA (en-US)', status: 'done', progress: 100, eta: '2024-04-01', actual: '2024-03-30' }
+          { name: 'API Integration', status: 'done', progress: 100, eta: '', actual: '', notes: 'API Working with mock data' },
+          { name: 'Build', status: 'done', progress: 100, eta: '', actual: '', notes: 'Build (with API Integration) completed' },
+          { name: 'UA QA Signoff (en-US)', status: 'done', progress: 100, eta: '', actual: '', notes: 'Completed with API' },
+          { name: 'UA QA Signoff (ae-AR)', status: 'done', progress: 100, eta: '', actual: '', notes: 'Completed with API' },
+          { name: 'UA - CX Review', status: 'done', progress: 100, eta: '', actual: '', notes: 'Completed' },
+          { name: 'DDA QA Signoff (en-US)', status: 'done', progress: 100, eta: '', actual: '', notes: 'Completed' },
+          { name: 'DDA QA Signoff (ae-AR)', status: 'not-started', progress: 0, eta: '', actual: '', notes: 'Yet to start' },
+          { name: 'DDA - CX review', status: 'not-started', progress: 0, eta: '', actual: '', notes: 'Yet to start' },
+          { name: 'Load Testing', status: 'not-started', progress: 0, eta: '', actual: '', notes: 'Yet to start' }
         ],
-        notes: 'Google API key needed',
-        dependencies: []
+        notes: 'Google API key to be shared for search',
+        dependencies: [
+          { item: 'Search Functionality', dependsOn: 'Google API Key', status: 'pending' }
+        ]
       },
       {
         name: 'Hotels',
         stages: [
-          { name: 'API Integration', status: 'done', progress: 100, eta: '2024-02-15', actual: '2024-02-13' },
-          { name: 'DDA QA (en-US)', status: 'active', progress: 70, eta: '2025-01-05', actual: '' }
+          { name: 'API Integration', status: 'done', progress: 100, eta: '', actual: '', notes: 'API Working with mock data' },
+          { name: 'Build', status: 'done', progress: 100, eta: '', actual: '', notes: 'Build (with API Integration) completed' },
+          { name: 'UA QA Signoff (en-US)', status: 'done', progress: 100, eta: '', actual: '', notes: 'Completed with API' },
+          { name: 'UA QA Signoff (ae-AR)', status: 'done', progress: 100, eta: '', actual: '', notes: 'Completed with API' },
+          { name: 'UA - CX Review', status: 'done', progress: 100, eta: '', actual: '', notes: 'Completed' },
+          { name: 'DDA QA Signoff (en-US)', status: 'active', progress: 50, eta: '', actual: '', notes: 'In progress' },
+          { name: 'DDA QA Signoff (ae-AR)', status: 'not-started', progress: 0, eta: '', actual: '', notes: 'Yet to start' },
+          { name: 'DDA - CX review', status: 'not-started', progress: 0, eta: '', actual: '', notes: 'Yet to start' },
+          { name: 'Load Testing', status: 'not-started', progress: 0, eta: '', actual: '', notes: 'Yet to start' }
         ],
         notes: 'Vendor to be finalized',
-        dependencies: []
+        dependencies: [
+          { item: 'Booking Integration', dependsOn: 'Vendor Selection', status: 'in-progress' }
+        ]
       },
       {
         name: 'Restaurant',
         stages: [
-          { name: 'API Integration', status: 'done', progress: 100, eta: '2024-02-15', actual: '2024-02-14' },
-          { name: 'DDA QA (en-US)', status: 'done', progress: 100, eta: '2024-04-01', actual: '2024-03-30' }
+          { name: 'API Integration', status: 'done', progress: 100, eta: '', actual: '', notes: 'API Working with mock data' },
+          { name: 'Build', status: 'done', progress: 100, eta: '', actual: '', notes: 'Build (with API Integration) completed' },
+          { name: 'UA QA Signoff (en-US)', status: 'done', progress: 100, eta: '', actual: '', notes: 'Completed with API' },
+          { name: 'UA QA Signoff (ae-AR)', status: 'done', progress: 100, eta: '', actual: '', notes: 'Completed with API' },
+          { name: 'UA - CX Review', status: 'done', progress: 100, eta: '', actual: '', notes: 'Completed' },
+          { name: 'DDA QA Signoff (en-US)', status: 'done', progress: 100, eta: '', actual: '', notes: 'Completed' },
+          { name: 'DDA QA Signoff (ae-AR)', status: 'not-started', progress: 0, eta: '', actual: '', notes: 'Yet to start' },
+          { name: 'DDA - CX review', status: 'not-started', progress: 0, eta: '', actual: '', notes: 'Yet to start' },
+          { name: 'Load Testing', status: 'not-started', progress: 0, eta: '', actual: '', notes: 'Yet to start' }
         ],
-        notes: 'Google API key needed',
-        dependencies: []
+        notes: 'Google API key to be shared for search',
+        dependencies: [
+          { item: 'Search Functionality', dependsOn: 'Google API Key', status: 'pending' }
+        ]
       },
       {
         name: 'Attractions',
         stages: [
-          { name: 'API Integration', status: 'done', progress: 100, eta: '2024-02-15', actual: '2024-02-13' },
-          { name: 'DDA QA (en-US)', status: 'active', progress: 70, eta: '2025-01-05', actual: '' }
+          { name: 'API Integration', status: 'done', progress: 100, eta: '', actual: '', notes: 'API Working with mock data' },
+          { name: 'Build', status: 'done', progress: 100, eta: '', actual: '', notes: 'Build (with API Integration) completed' },
+          { name: 'UA QA Signoff (en-US)', status: 'done', progress: 100, eta: '', actual: '', notes: 'Completed with API' },
+          { name: 'UA QA Signoff (ae-AR)', status: 'done', progress: 100, eta: '', actual: '', notes: 'Completed with API' },
+          { name: 'UA - CX Review', status: 'done', progress: 100, eta: '', actual: '', notes: 'Completed' },
+          { name: 'DDA QA Signoff (en-US)', status: 'active', progress: 50, eta: '', actual: '', notes: 'In progress' },
+          { name: 'DDA QA Signoff (ae-AR)', status: 'not-started', progress: 0, eta: '', actual: '', notes: 'Yet to start' },
+          { name: 'DDA - CX review', status: 'not-started', progress: 0, eta: '', actual: '', notes: 'Yet to start' },
+          { name: 'Load Testing', status: 'not-started', progress: 0, eta: '', actual: '', notes: 'Yet to start' }
         ],
         notes: 'Vendor to be finalized',
-        dependencies: []
+        dependencies: [
+          { item: 'Data Integration', dependsOn: 'Vendor API', status: 'in-progress' }
+        ]
       }
     ],
     'Events': [
       {
         name: 'Sports',
         stages: [
-          { name: 'API Integration', status: 'done', progress: 100, eta: '2024-02-15', actual: '2024-02-14' },
-          { name: 'DDA QA (en-US)', status: 'active', progress: 70, eta: '2025-01-05', actual: '' }
+          { name: 'API Integration', status: 'done', progress: 100, eta: '', actual: '', notes: 'API Working with mock data' },
+          { name: 'Build', status: 'done', progress: 100, eta: '', actual: '', notes: 'Build (with API Integration) completed' },
+          { name: 'UA QA Signoff (en-US)', status: 'done', progress: 100, eta: '', actual: '', notes: 'Completed with API' },
+          { name: 'UA QA Signoff (ae-AR)', status: 'done', progress: 100, eta: '', actual: '', notes: 'Completed with API' },
+          { name: 'UA - CX Review', status: 'done', progress: 100, eta: '', actual: '', notes: 'Completed' },
+          { name: 'DDA QA Signoff (en-US)', status: 'active', progress: 50, eta: '', actual: '', notes: 'In progress' },
+          { name: 'DDA QA Signoff (ae-AR)', status: 'not-started', progress: 0, eta: '', actual: '', notes: 'Yet to start' },
+          { name: 'DDA - CX review', status: 'not-started', progress: 0, eta: '', actual: '', notes: 'Yet to start' },
+          { name: 'Load Testing', status: 'not-started', progress: 0, eta: '', actual: '', notes: 'Yet to start' }
         ],
         notes: 'Vendor to be finalized',
-        dependencies: []
+        dependencies: [
+          { item: 'Event Data', dependsOn: 'Vendor API', status: 'in-progress' }
+        ]
       },
       {
         name: 'Entertainment',
         stages: [
-          { name: 'API Integration', status: 'done', progress: 100, eta: '2024-02-15', actual: '2024-02-14' },
-          { name: 'DDA QA (en-US)', status: 'active', progress: 70, eta: '2025-01-05', actual: '' }
+          { name: 'API Integration', status: 'done', progress: 100, eta: '', actual: '', notes: 'API Working with mock data' },
+          { name: 'Build', status: 'done', progress: 100, eta: '', actual: '', notes: 'Build (with API Integration) completed' },
+          { name: 'UA QA Signoff (en-US)', status: 'done', progress: 100, eta: '', actual: '', notes: 'Completed with API' },
+          { name: 'UA QA Signoff (ae-AR)', status: 'done', progress: 100, eta: '', actual: '', notes: 'Completed with API' },
+          { name: 'UA - CX Review', status: 'done', progress: 100, eta: '', actual: '', notes: 'Completed' },
+          { name: 'DDA QA Signoff (en-US)', status: 'active', progress: 50, eta: '', actual: '', notes: 'In progress' },
+          { name: 'DDA QA Signoff (ae-AR)', status: 'not-started', progress: 0, eta: '', actual: '', notes: 'Yet to start' },
+          { name: 'DDA - CX review', status: 'not-started', progress: 0, eta: '', actual: '', notes: 'Yet to start' },
+          { name: 'Load Testing', status: 'not-started', progress: 0, eta: '', actual: '', notes: 'Yet to start' }
         ],
         notes: 'Vendor to be finalized',
-        dependencies: []
+        dependencies: [
+          { item: 'Event Data', dependsOn: 'Vendor API', status: 'in-progress' }
+        ]
       },
       {
         name: 'Others',
         stages: [
-          { name: 'API Integration', status: 'done', progress: 100, eta: '2024-02-15', actual: '2024-02-14' },
-          { name: 'DDA QA (en-US)', status: 'active', progress: 70, eta: '2025-01-05', actual: '' }
+          { name: 'API Integration', status: 'done', progress: 100, eta: '', actual: '', notes: 'API Working with mock data' },
+          { name: 'Build', status: 'done', progress: 100, eta: '', actual: '', notes: 'Build (with API Integration) completed' },
+          { name: 'UA QA Signoff (en-US)', status: 'done', progress: 100, eta: '', actual: '', notes: 'Completed with API' },
+          { name: 'UA QA Signoff (ae-AR)', status: 'done', progress: 100, eta: '', actual: '', notes: 'Completed with API' },
+          { name: 'UA - CX Review', status: 'done', progress: 100, eta: '', actual: '', notes: 'Completed' },
+          { name: 'DDA QA Signoff (en-US)', status: 'active', progress: 50, eta: '', actual: '', notes: 'In progress' },
+          { name: 'DDA QA Signoff (ae-AR)', status: 'not-started', progress: 0, eta: '', actual: '', notes: 'Yet to start' },
+          { name: 'DDA - CX review', status: 'not-started', progress: 0, eta: '', actual: '', notes: 'Yet to start' },
+          { name: 'Load Testing', status: 'not-started', progress: 0, eta: '', actual: '', notes: 'Yet to start' }
         ],
         notes: 'Vendor to be finalized',
-        dependencies: []
+        dependencies: [
+          { item: 'Event Data', dependsOn: 'Vendor API', status: 'in-progress' }
+        ]
       }
     ],
     'Booking': [
       {
         name: 'Hospital',
         stages: [
-          { name: 'Vendor Finalization', status: 'critical', progress: 0, eta: '2025-01-30', actual: '' }
+          { name: 'API Integration', status: 'critical', progress: 0, eta: '', actual: '', notes: 'Vendor to be finalized' },
+          { name: 'Build', status: 'not-started', progress: 0, eta: '', actual: '', notes: 'Yet to start' },
+          { name: 'UA QA Signoff (en-US)', status: 'not-started', progress: 0, eta: '', actual: '', notes: 'Yet to start' },
+          { name: 'UA QA Signoff (ae-AR)', status: 'not-started', progress: 0, eta: '', actual: '', notes: 'Yet to start' },
+          { name: 'DDA QA Signoff (en-US)', status: 'not-started', progress: 0, eta: '', actual: '', notes: 'Yet to start' },
+          { name: 'DDA QA Signoff (ae-AR)', status: 'not-started', progress: 0, eta: '', actual: '', notes: 'Yet to start' },
+          { name: 'DDA - CX review', status: 'not-started', progress: 0, eta: '', actual: '', notes: 'Yet to start' },
+          { name: 'Load Testing', status: 'not-started', progress: 0, eta: '', actual: '', notes: 'Yet to start' }
         ],
         notes: 'Vendor to be finalized',
-        dependencies: []
+        dependencies: [
+          { item: 'Vendor Selection', dependsOn: 'Hospital Network Agreement', status: 'blocked' }
+        ]
       },
       {
         name: 'Hotels',
         stages: [
-          { name: 'API Integration', status: 'done', progress: 100, eta: '2024-02-15', actual: '2024-02-13' },
-          { name: 'DDA QA (en-US)', status: 'active', progress: 70, eta: '2025-01-05', actual: '' },
-          { name: 'Load Testing', status: 'active', progress: 30, eta: '2025-01-20', actual: '' }
+          { name: 'API Integration', status: 'done', progress: 100, eta: '', actual: '', notes: 'API Working with mock data' },
+          { name: 'Build', status: 'done', progress: 100, eta: '', actual: '', notes: 'Build (with API Integration) completed' },
+          { name: 'UA QA Signoff (en-US)', status: 'done', progress: 100, eta: '', actual: '', notes: 'Completed with API' },
+          { name: 'UA QA Signoff (ae-AR)', status: 'done', progress: 100, eta: '', actual: '', notes: 'Completed with API' },
+          { name: 'UA - CX Review', status: 'done', progress: 100, eta: '', actual: '', notes: 'Completed' },
+          { name: 'DDA QA Signoff (en-US)', status: 'active', progress: 50, eta: '', actual: '', notes: 'In progress' },
+          { name: 'DDA QA Signoff (ae-AR)', status: 'not-started', progress: 0, eta: '', actual: '', notes: 'Yet to start' },
+          { name: 'DDA - CX review', status: 'not-started', progress: 0, eta: '', actual: '', notes: 'Yet to start' },
+          { name: 'Load Testing', status: 'active', progress: 50, eta: '', actual: '', notes: 'In progress' }
         ],
         notes: 'Vendor to be finalized',
-        dependencies: []
+        dependencies: [
+          { item: 'Payment Gateway', dependsOn: 'Bank Integration', status: 'in-progress' }
+        ]
       },
       {
         name: 'Restaurant',
         stages: [
-          { name: 'Vendor Finalization', status: 'critical', progress: 0, eta: '2025-01-30', actual: '' }
+          { name: 'API Integration', status: 'critical', progress: 0, eta: '', actual: '', notes: 'Vendor to be finalized' },
+          { name: 'Build', status: 'not-started', progress: 0, eta: '', actual: '', notes: 'Yet to start' },
+          { name: 'UA QA Signoff (en-US)', status: 'not-started', progress: 0, eta: '', actual: '', notes: 'Yet to start' },
+          { name: 'UA QA Signoff (ae-AR)', status: 'not-started', progress: 0, eta: '', actual: '', notes: 'Yet to start' },
+          { name: 'DDA QA Signoff (en-US)', status: 'not-started', progress: 0, eta: '', actual: '', notes: 'Yet to start' },
+          { name: 'DDA QA Signoff (ae-AR)', status: 'not-started', progress: 0, eta: '', actual: '', notes: 'Yet to start' },
+          { name: 'DDA - CX review', status: 'not-started', progress: 0, eta: '', actual: '', notes: 'Yet to start' },
+          { name: 'Load Testing', status: 'not-started', progress: 0, eta: '', actual: '', notes: 'Yet to start' }
         ],
         notes: 'Vendor to be finalized',
-        dependencies: []
+        dependencies: [
+          { item: 'Vendor Selection', dependsOn: 'Restaurant Booking Platform', status: 'blocked' }
+        ]
       },
       {
         name: 'Attractions',
         stages: [
-          { name: 'API Integration', status: 'done', progress: 100, eta: '2024-02-15', actual: '2024-02-13' },
-          { name: 'Load Testing', status: 'active', progress: 30, eta: '2025-01-20', actual: '' }
+          { name: 'API Integration', status: 'done', progress: 100, eta: '', actual: '', notes: 'API Working with mock data' },
+          { name: 'Build', status: 'done', progress: 100, eta: '', actual: '', notes: 'Build (with API Integration) completed' },
+          { name: 'UA QA Signoff (en-US)', status: 'done', progress: 100, eta: '', actual: '', notes: 'Completed with API' },
+          { name: 'UA QA Signoff (ae-AR)', status: 'done', progress: 100, eta: '', actual: '', notes: 'Completed with API' },
+          { name: 'UA - CX Review', status: 'done', progress: 100, eta: '', actual: '', notes: 'Completed' },
+          { name: 'DDA QA Signoff (en-US)', status: 'active', progress: 50, eta: '', actual: '', notes: 'In progress' },
+          { name: 'DDA QA Signoff (ae-AR)', status: 'not-started', progress: 0, eta: '', actual: '', notes: 'Yet to start' },
+          { name: 'DDA - CX review', status: 'not-started', progress: 0, eta: '', actual: '', notes: 'Yet to start' },
+          { name: 'Load Testing', status: 'active', progress: 50, eta: '', actual: '', notes: 'In progress' }
         ],
         notes: 'Vendor to be finalized',
-        dependencies: []
+        dependencies: [
+          { item: 'Ticketing System', dependsOn: 'Vendor Integration', status: 'in-progress' }
+        ]
       },
       {
         name: 'Events',
         stages: [
-          { name: 'Vendor Finalization', status: 'critical', progress: 0, eta: '2025-01-30', actual: '' }
+          { name: 'API Integration', status: 'critical', progress: 0, eta: '', actual: '', notes: 'Vendor to be finalized' },
+          { name: 'Build', status: 'not-started', progress: 0, eta: '', actual: '', notes: 'Yet to start' },
+          { name: 'UA QA Signoff (en-US)', status: 'not-started', progress: 0, eta: '', actual: '', notes: 'Yet to start' },
+          { name: 'UA QA Signoff (ae-AR)', status: 'not-started', progress: 0, eta: '', actual: '', notes: 'Yet to start' },
+          { name: 'DDA QA Signoff (en-US)', status: 'not-started', progress: 0, eta: '', actual: '', notes: 'Yet to start' },
+          { name: 'DDA QA Signoff (ae-AR)', status: 'not-started', progress: 0, eta: '', actual: '', notes: 'Yet to start' },
+          { name: 'DDA - CX review', status: 'not-started', progress: 0, eta: '', actual: '', notes: 'Yet to start' },
+          { name: 'Load Testing', status: 'not-started', progress: 0, eta: '', actual: '', notes: 'Yet to start' }
         ],
         notes: 'Vendor to be finalized',
-        dependencies: []
+        dependencies: [
+          { item: 'Vendor Selection', dependsOn: 'Event Ticketing Platform', status: 'blocked' }
+        ]
       }
     ]
   };
@@ -311,16 +487,19 @@ const DubaiAIDashboard = () => {
 
   // Template for new stages
   const getDefaultStages = () => [
-    { name: 'API Integration', status: 'not-started', progress: 0, eta: '', actual: '' },
-    { name: 'Build', status: 'not-started', progress: 0, eta: '', actual: '' },
-    { name: 'UA QA Signoff (en-US)', status: 'not-started', progress: 0, eta: '', actual: '' },
-    { name: 'UA QA Signoff (ae-AR)', status: 'not-started', progress: 0, eta: '', actual: '' },
-    { name: 'UA - CX Review', status: 'not-started', progress: 0, eta: '', actual: '' },
-    { name: 'DDA QA Signoff (en-US)', status: 'not-started', progress: 0, eta: '', actual: '' },
-    { name: 'DDA QA Signoff (ae-AR)', status: 'not-started', progress: 0, eta: '', actual: '' },
-    { name: 'Security HLD Review', status: 'not-started', progress: 0, eta: '', actual: '' },
-    { name: 'Security LLD Review', status: 'not-started', progress: 0, eta: '', actual: '' },
-    { name: 'Load Testing', status: 'not-started', progress: 0, eta: '', actual: '' }
+    { name: 'API Integration', status: 'not-started', progress: 0, eta: '', actual: '', notes: '' },
+    { name: 'Build', status: 'not-started', progress: 0, eta: '', actual: '', notes: '' },
+    { name: 'UA QA Signoff (en-US)', status: 'not-started', progress: 0, eta: '', actual: '', notes: '' },
+    { name: 'UA QA Signoff (ae-AR)', status: 'not-started', progress: 0, eta: '', actual: '', notes: '' },
+    { name: 'UA - CX Review', status: 'not-started', progress: 0, eta: '', actual: '', notes: '' },
+    { name: 'DDA QA Signoff (en-US)', status: 'not-started', progress: 0, eta: '', actual: '', notes: '' },
+    { name: 'DDA QA Signoff (ae-AR)', status: 'not-started', progress: 0, eta: '', actual: '', notes: '' },
+    { name: 'DDA - CX review', status: 'not-started', progress: 0, eta: '', actual: '', notes: '' },
+    { name: 'CX Design Feedback', status: 'not-started', progress: 0, eta: '', actual: '', notes: '' },
+    { name: 'Security HLD Review', status: 'not-started', progress: 0, eta: '', actual: '', notes: '' },
+    { name: 'Security LLD Review', status: 'not-started', progress: 0, eta: '', actual: '', notes: '' },
+    { name: 'Security PenTesting', status: 'not-started', progress: 0, eta: '', actual: '', notes: '' },
+    { name: 'Load Testing', status: 'not-started', progress: 0, eta: '', actual: '', notes: '' }
   ];
 
   const getStatusColor = (status) => {
@@ -380,7 +559,8 @@ const DubaiAIDashboard = () => {
         status: 'not-started',
         progress: 0,
         eta: '',
-        actual: ''
+        actual: '',
+        notes: ''
       });
       return newData;
     });
