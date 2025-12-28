@@ -25,7 +25,7 @@ const DubaiAIDashboard = () => {
         ],
         notes: 'Alignment Call to be setup on 10th Dec',
         dependencies: [
-          { item: 'Load Testing', dependsOn: 'Infrastructure Setup', status: 'pending' }
+          { item: 'Load Testing', dependsOn: 'Infrastructure Setup', status: 'critical' }
         ]
       },
       {
@@ -46,7 +46,7 @@ const DubaiAIDashboard = () => {
         ],
         notes: 'API not working with mock data',
         dependencies: [
-          { item: 'API Integration', dependsOn: 'Third-party API vendor', status: 'blocked' }
+          { item: 'API Integration', dependsOn: 'Third-party API vendor', status: 'critical' }
         ]
       },
       {
@@ -67,7 +67,7 @@ const DubaiAIDashboard = () => {
         ],
         notes: 'API not working with mock data',
         dependencies: [
-          { item: 'API Integration', dependsOn: 'DEWA API Access', status: 'blocked' }
+          { item: 'API Integration', dependsOn: 'DEWA API Access', status: 'critical' }
         ]
       },
       {
@@ -109,7 +109,7 @@ const DubaiAIDashboard = () => {
         ],
         notes: 'Mock Data Pending',
         dependencies: [
-          { item: 'API Integration', dependsOn: 'RTA Mock Data', status: 'blocked' }
+          { item: 'API Integration', dependsOn: 'RTA Mock Data', status: 'critical' }
         ]
       },
       {
@@ -167,7 +167,7 @@ const DubaiAIDashboard = () => {
         ],
         notes: 'Google API key to be shared for search',
         dependencies: [
-          { item: 'Search Functionality', dependsOn: 'Google API Key', status: 'pending' }
+          { item: 'Search Functionality', dependsOn: 'Google API Key', status: 'critical' }
         ]
       },
       {
@@ -203,7 +203,7 @@ const DubaiAIDashboard = () => {
         ],
         notes: 'Google API key to be shared for search',
         dependencies: [
-          { item: 'Search Functionality', dependsOn: 'Google API Key', status: 'pending' }
+          { item: 'Search Functionality', dependsOn: 'Google API Key', status: 'critical' }
         ]
       },
       {
@@ -296,7 +296,7 @@ const DubaiAIDashboard = () => {
         ],
         notes: 'Vendor to be finalized',
         dependencies: [
-          { item: 'Vendor Selection', dependsOn: 'Hospital Network Agreement', status: 'blocked' }
+          { item: 'Vendor Selection', dependsOn: 'Hospital Network Agreement', status: 'critical' }
         ]
       },
       {
@@ -331,7 +331,7 @@ const DubaiAIDashboard = () => {
         ],
         notes: 'Vendor to be finalized',
         dependencies: [
-          { item: 'Vendor Selection', dependsOn: 'Restaurant Booking Platform', status: 'blocked' }
+          { item: 'Vendor Selection', dependsOn: 'Restaurant Booking Platform', status: 'critical' }
         ]
       },
       {
@@ -366,7 +366,7 @@ const DubaiAIDashboard = () => {
         ],
         notes: 'Vendor to be finalized',
         dependencies: [
-          { item: 'Vendor Selection', dependsOn: 'Event Ticketing Platform', status: 'blocked' }
+          { item: 'Vendor Selection', dependsOn: 'Event Ticketing Platform', status: 'critical' }
         ]
       }
     ]
@@ -521,7 +521,7 @@ const DubaiAIDashboard = () => {
     return <Calendar size={16} />;
   };
 
-  // Kanban column configuration - All 6 statuses
+  // Kanban column configuration - 4 statuses only
   const kanbanColumns = [
     { 
       status: 'not-started', 
@@ -545,20 +545,6 @@ const DubaiAIDashboard = () => {
       borderColor: 'rgba(239, 68, 68, 0.3)'
     },
     { 
-      status: 'pending', 
-      label: 'Pending', 
-      color: '#f59e0b',
-      bgColor: 'rgba(245, 158, 11, 0.1)',
-      borderColor: 'rgba(245, 158, 11, 0.3)'
-    },
-    { 
-      status: 'blocked', 
-      label: 'Blocked', 
-      color: '#dc2626',
-      bgColor: 'rgba(220, 38, 38, 0.1)',
-      borderColor: 'rgba(220, 38, 38, 0.3)'
-    },
-    { 
       status: 'done', 
       label: 'Done', 
       color: '#10b981',
@@ -567,8 +553,9 @@ const DubaiAIDashboard = () => {
     }
   ];
 
-  // Map status to column (no mapping needed now - all statuses have columns)
+  // Map status to column (map pending/blocked to critical)
   const getColumnForStatus = (status) => {
+    if (status === 'pending' || status === 'blocked') return 'critical';
     return status;
   };
 
@@ -724,7 +711,7 @@ const DubaiAIDashboard = () => {
       newData[selectedCategory][journeyIndex].dependencies.push({
         item: 'New Item',
         dependsOn: 'Dependency',
-        status: 'pending'
+        status: 'critical'
       });
       return newData;
     });
@@ -1814,8 +1801,6 @@ const DubaiAIDashboard = () => {
                                 <option value="active">In Progress</option>
                                 <option value="critical">Critical</option>
                                 <option value="done">Done</option>
-                                <option value="pending">Pending</option>
-                                <option value="blocked">Blocked</option>
                               </select>
                             )}
 
@@ -2153,8 +2138,7 @@ const DubaiAIDashboard = () => {
                         >
                           <option value="completed">Completed</option>
                           <option value="in-progress">In Progress</option>
-                          <option value="pending">Pending</option>
-                          <option value="blocked">Blocked</option>
+                          <option value="critical">Critical</option>
                         </select>
                       ) : (
                         <span style={{
