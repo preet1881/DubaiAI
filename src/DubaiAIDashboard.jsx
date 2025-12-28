@@ -423,6 +423,7 @@ const DubaiAIDashboard = () => {
           setJourneyData(dashboardData);
         } else {
           console.warn('⚠️ No data returned from database, using default data');
+          // Ensure we always set some data to prevent black screen
           setJourneyData(defaultJourneyData);
         }
         
@@ -432,7 +433,9 @@ const DubaiAIDashboard = () => {
         }
       } catch (err) {
         console.error('Error loading data from API:', err);
+        console.error('Error details:', err.message, err.stack);
         setError('Failed to load data from cloud storage. Using default data.');
+        // Always set default data to prevent black screen
         setJourneyData(defaultJourneyData);
       } finally {
         setIsLoading(false);
@@ -769,6 +772,7 @@ const DubaiAIDashboard = () => {
     console.log('🚀 Dashboard Version: 2.0.0 - Normalized Tables');
     console.log('📅 Deployed:', new Date().toISOString());
     console.log('🔍 Check console for Supabase initialization status');
+    console.log('📊 Current journeyData keys:', Object.keys(journeyData));
   }, []);
 
   return (
