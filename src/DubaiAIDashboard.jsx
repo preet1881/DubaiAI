@@ -511,8 +511,8 @@ const DubaiAIDashboard = () => {
     });
   }, [journeyData]);
 
-  const updateStageLocal = async (stageIndex, field, value) => {
-    // Update local state immediately
+  const updateStageLocal = (stageIndex, field, value) => {
+    // Update local state only (no API call - will save on Save button click)
     setJourneyData(prev => {
       const newData = JSON.parse(JSON.stringify(prev));
       const journeyIndex = newData[selectedCategory].findIndex(j => j.name === selectedJourney);
@@ -520,27 +520,67 @@ const DubaiAIDashboard = () => {
       stage[field] = value;
       return newData;
     });
+  };
 
-    // Save to database (granular update)
-    if (!isLoading && !isInitialLoadRef.current) {
-      const journey = currentJourney;
-      if (journey && journey.stages && journey.stages[stageIndex] && journey.stages[stageIndex].id) {
-        setIsSaving(true);
-        try {
-          const updates = { [field]: value };
-          // Convert empty strings to null for dates
-          if ((field === 'eta' || field === 'actual') && value === '') {
-            updates[field] = null;
-          }
-          await updateStage(journey.stages[stageIndex].id, updates);
-          setError(null);
-        } catch (err) {
-          console.error('Error updating stage:', err);
-          setError('Failed to save. Please try again.');
-        } finally {
-          setIsSaving(false);
-        }
+  // Save all changes when Save button is clicked
+  const saveAllChanges = async () => {
+    if (!currentJourney || !currentJourney.id) return;
+
+    setIsSaving(true);
+    setError(null);
+
+    try {
+      // Save journey notes
+      if (currentJourney.notes !== undefined) {
+        await updateJourneyNotes(currentJourney.id, currentJourney.notes || '');
       }
+
+      // Save all stages
+      if (currentJourney.stages) {
+        const savePromises = currentJourney.stages.map(async (stage) => {
+          if (stage.id) {
+            const updates = {};
+            if (stage.status !== undefined) updates.status = stage.status;
+            if (stage.progress !== undefined) updates.progress = stage.progress;
+            if (stage.eta !== undefined) {
+              updates.eta = stage.eta === '' ? null : stage.eta;
+            }
+            if (stage.actual !== undefined) {
+              updates.actual = stage.actual === '' ? null : stage.actual;
+            }
+            if (stage.notes !== undefined) updates.notes = stage.notes || '';
+            
+            if (Object.keys(updates).length > 0) {
+              await updateStage(stage.id, updates);
+            }
+          }
+        });
+        await Promise.all(savePromises);
+      }
+
+      // Save all dependencies
+      if (currentJourney.dependencies) {
+        const depPromises = currentJourney.dependencies.map(async (dep) => {
+          if (dep.id) {
+            const updates = {};
+            if (dep.item !== undefined) updates.item = dep.item;
+            if (dep.dependsOn !== undefined) updates.depends_on = dep.dependsOn;
+            if (dep.status !== undefined) updates.status = dep.status;
+            
+            if (Object.keys(updates).length > 0) {
+              await updateDependency(dep.id, updates);
+            }
+          }
+        });
+        await Promise.all(depPromises);
+      }
+
+      setError(null);
+    } catch (err) {
+      console.error('Error saving changes:', err);
+      setError('Failed to save changes. Please try again.');
+    } finally {
+      setIsSaving(false);
     }
   };
 
@@ -569,37 +609,14 @@ const DubaiAIDashboard = () => {
     });
   };
 
-  const updateDependencyLocal = async (depIndex, field, value) => {
-    // Update local state immediately
+  const updateDependencyLocal = (depIndex, field, value) => {
+    // Update local state only (no API call)
     setJourneyData(prev => {
       const newData = JSON.parse(JSON.stringify(prev));
       const journeyIndex = newData[selectedCategory].findIndex(j => j.name === selectedJourney);
       newData[selectedCategory][journeyIndex].dependencies[depIndex][field] = value;
       return newData;
     });
-
-    // Save to database (granular update)
-    if (!isLoading && !isInitialLoadRef.current) {
-      const journey = currentJourney;
-      if (journey && journey.dependencies && journey.dependencies[depIndex] && journey.dependencies[depIndex].id) {
-        setIsSaving(true);
-        try {
-          const updates = { [field]: value };
-          // Map frontend field name to DB field name
-          if (field === 'dependsOn') {
-            updates.depends_on = value;
-            delete updates.dependsOn;
-          }
-          await updateDependency(journey.dependencies[depIndex].id, updates);
-          setError(null);
-        } catch (err) {
-          console.error('Error updating dependency:', err);
-          setError('Failed to save. Please try again.');
-        } finally {
-          setIsSaving(false);
-        }
-      }
-    }
   };
 
   const addDependency = () => {
@@ -624,28 +641,14 @@ const DubaiAIDashboard = () => {
     });
   };
 
-  const updateNotes = async (notes) => {
-    // Update local state immediately
+  const updateNotes = (notes) => {
+    // Update local state only (no API call)
     setJourneyData(prev => {
       const newData = JSON.parse(JSON.stringify(prev));
       const journeyIndex = newData[selectedCategory].findIndex(j => j.name === selectedJourney);
       newData[selectedCategory][journeyIndex].notes = notes;
       return newData;
     });
-
-    // Save to database (granular update)
-    if (!isLoading && !isInitialLoadRef.current && currentJourney && currentJourney.id) {
-      setIsSaving(true);
-      try {
-        await updateJourneyNotes(currentJourney.id, notes);
-        setError(null);
-      } catch (err) {
-        console.error('Error updating journey notes:', err);
-        setError('Failed to save. Please try again.');
-      } finally {
-        setIsSaving(false);
-      }
-    }
   };
 
   const updateJourneyName = (oldName, newName) => {
@@ -1352,7 +1355,17 @@ const DubaiAIDashboard = () => {
             )}
           </div>
           <button
-            onClick={() => setEditMode(!editMode)}
+            onClick={async () => {
+              if (editMode) {
+                // Save all changes when clicking Save
+                await saveAllChanges();
+                setEditMode(false);
+              } else {
+                // Enter edit mode
+                setEditMode(true);
+              }
+            }}
+            disabled={isSaving}
             style={{
               padding: '12px 24px',
               background: editMode 
@@ -1363,14 +1376,21 @@ const DubaiAIDashboard = () => {
               color: '#fff',
               fontSize: '14px',
               fontWeight: '700',
-              cursor: 'pointer',
+              cursor: isSaving ? 'wait' : 'pointer',
               display: 'flex',
               alignItems: 'center',
               gap: '8px',
-              height: 'fit-content'
+              height: 'fit-content',
+              opacity: isSaving ? 0.7 : 1
             }}
           >
-            {editMode ? <><Save size={16} /> Save Mode</> : <><Edit2 size={16} /> Edit Mode</>}
+            {isSaving ? (
+              <><Loader2 size={16} className="animate-spin" /> Saving...</>
+            ) : editMode ? (
+              <><Save size={16} /> Save Changes</>
+            ) : (
+              <><Edit2 size={16} /> Edit Mode</>
+            )}
           </button>
         </div>
 
@@ -1508,9 +1528,9 @@ const DubaiAIDashboard = () => {
                 </div>
 
                 {/* ETA and Actual */}
-                <div style={{ display: 'flex', gap: '16px', marginLeft: '32px' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                    <span style={{ fontSize: '12px', color: '#94a3b8' }}>ETA:</span>
+                <div style={{ display: 'flex', gap: '16px', marginLeft: '32px', marginTop: '8px', minHeight: '32px' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', minWidth: '180px' }}>
+                    <span style={{ fontSize: '12px', color: '#94a3b8', whiteSpace: 'nowrap' }}>ETA:</span>
                     {editMode ? (
                       <input
                         type="date"
@@ -1524,17 +1544,19 @@ const DubaiAIDashboard = () => {
                           color: '#e2e8f0',
                           fontSize: '12px',
                           fontFamily: 'inherit',
-                          minWidth: '140px'
+                          minWidth: '150px',
+                          width: '150px',
+                          flexShrink: 0
                         }}
                       />
                     ) : (
-                      <span style={{ fontSize: '13px', color: '#cbd5e1' }}>
+                      <span style={{ fontSize: '13px', color: '#cbd5e1', minWidth: '150px' }}>
                         {stage.eta || 'Not set'}
                       </span>
                     )}
                   </div>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                    <span style={{ fontSize: '12px', color: '#94a3b8' }}>Actual:</span>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', minWidth: '180px' }}>
+                    <span style={{ fontSize: '12px', color: '#94a3b8', whiteSpace: 'nowrap' }}>Actual:</span>
                     {editMode ? (
                       <input
                         type="date"
@@ -1548,11 +1570,13 @@ const DubaiAIDashboard = () => {
                           color: '#e2e8f0',
                           fontSize: '12px',
                           fontFamily: 'inherit',
-                          minWidth: '140px'
+                          minWidth: '150px',
+                          width: '150px',
+                          flexShrink: 0
                         }}
                       />
                     ) : (
-                      <span style={{ fontSize: '13px', color: '#cbd5e1' }}>
+                      <span style={{ fontSize: '13px', color: '#cbd5e1', minWidth: '150px' }}>
                         {stage.actual || 'Pending'}
                       </span>
                     )}
