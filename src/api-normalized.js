@@ -13,7 +13,10 @@ let supabase = null;
 
 if (supabaseUrl && supabaseAnonKey) {
   supabase = createClient(supabaseUrl, supabaseAnonKey);
-  console.log('✅ Supabase client initialized with URL:', supabaseUrl);
+  // Only log in development to reduce console noise
+  if (import.meta.env.DEV) {
+    console.log('✅ Supabase client initialized');
+  }
 } else {
   console.error('❌ Supabase credentials not found!');
   console.error('Missing:', {
@@ -65,7 +68,10 @@ export const fetchAllDashboardData = async () => {
     const stages = stagesResult.data || [];
     const dependencies = dependenciesResult.data || [];
 
-    console.log(`📊 Fetched: ${categories.length} categories, ${journeys.length} journeys, ${stages.length} stages, ${dependencies.length} dependencies`);
+    // Only log in development
+    if (import.meta.env.DEV) {
+      console.log(`📊 Fetched: ${categories.length} categories, ${journeys.length} journeys, ${stages.length} stages, ${dependencies.length} dependencies`);
+    }
 
     // Aggregate into the same structure as before
     const aggregated = {};
