@@ -449,6 +449,14 @@ const DubaiAIDashboard = () => {
     loadData();
   }, []);
 
+  // Log version on mount to verify deployment (MUST be before any conditional returns)
+  useEffect(() => {
+    console.log('🚀 Dashboard Version: 2.0.0 - Normalized Tables');
+    console.log('📅 Deployed:', new Date().toISOString());
+    console.log('🔍 Check console for Supabase initialization status');
+    console.log('📊 Current journeyData keys:', Object.keys(journeyData));
+  }, []);
+
   // Note: Bulk save removed - now using granular updates per field
 
   // Debounced save preferences to API
@@ -775,14 +783,6 @@ const DubaiAIDashboard = () => {
       </div>
     );
   }
-
-  // Log version on mount to verify deployment
-  useEffect(() => {
-    console.log('🚀 Dashboard Version: 2.0.0 - Normalized Tables');
-    console.log('📅 Deployed:', new Date().toISOString());
-    console.log('🔍 Check console for Supabase initialization status');
-    console.log('📊 Current journeyData keys:', Object.keys(journeyData));
-  }, []);
 
   return (
     <div style={{
